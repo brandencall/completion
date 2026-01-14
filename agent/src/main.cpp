@@ -32,11 +32,10 @@ void llm_post_test() {
     auto data_reciever = [&](const char *data, size_t data_length) {
         std::string chunk(data, data_length);
 
-        // std::cout << chunk << '\n';
+        //std::cout << chunk << '\n';
         //  Split lines by '\n'
-
-        size_t pos = 0;
-        while ((pos = chunk.find("\n")) != std::string::npos) {
+         size_t pos = 0;
+         while ((pos = chunk.find("\n")) != std::string::npos) {
             std::string line = chunk.substr(0, pos);
             chunk.erase(0, pos + 1);
 
@@ -66,6 +65,6 @@ int main() {
     std::cout << "Hello World" << '\n';
     // llm_post_test();
     int socketFD = socket_init(22222);
-    handle_client_request(socketFD);
+    start_tcp(socketFD);
     return 0;
 }
