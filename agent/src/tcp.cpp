@@ -38,10 +38,13 @@ int socket_init(int port) {
     return socketFD;
 }
 
-void start_tcp(int socketFD) {
+// Note: This only handles a single client connection at a time.
+// Could add multiple client connection handling but since this is for local LLM hosting, that seems like overkill.
+// If needed to handle multiple clients than a shared message queue (producer consumer pattern) would work.
+void start_tcp(int socketFD, MessageHandler handler) {
     while (true) {
         int clientFD = wait_for_client(socketFD);
-        handle_client_connection(clientFD);
+        handle_client_connection(clientFD, handler);
         close(clientFD);
         printf("closed client connection\n");
     }
@@ -56,7 +59,7 @@ int wait_for_client(int socketFD) {
     return clientFD;
 }
 
-void handle_client_connection(int clientSocket) {
+void handle_client_connection(int clientSocket, MessageHandler handler) {
     bool running = true;
     while (running) {
         uint32_t messageLength = message_length(clientSocket, running);
@@ -67,8 +70,7 @@ void handle_client_connection(int clientSocket) {
         if (!payload.has_value())
             break;
 
-        std::cout << "Client sent (" << messageLength << " bytes)\n";
-        std::cout << "Client sent: " << payload.value() << "\n";
+        handler(clientSocket, payload.value());
     }
 }
 
@@ -91,6 +93,7 @@ bool valid_message_length(uint32_t messageLength) {
 
 std::optional<std::string> client_payload(int clientSocket, uint32_t messageLength, bool &runFlag) {
     std::string message(messageLength, '\0');
+    std::cout << "messageLength received: " << messageLength << '\n';
     if (!recv_exact(clientSocket, message.data(), messageLength)) {
         std::cerr << "Failed to receive message payload\n";
         runFlag = false;

@@ -7,21 +7,15 @@
 
 #define LISTEN_BACKLOG 128
 #define PORT 22222
+using nlohmann::json;
+
 using json = nlohmann::json;
 
-void llm_post_test() {
-    nlohmann::json test = {
-        {"prompt", R"(You are a code completion engine. Only output code. Do not explain. Language: C. 
-            <BEGIN_CODE> 
-            int sum_positive(int *arr, int len) { 
-                int total = 0;
-                for (int i = 0; i < len; i++) { 
-                    if (arr[i] > 0) { 
-                        total += )"},
-        {"max_tokens", 64},
-        {"temperature", 0.15},
-        {"stop", {"<END_CODE>"}},
-        {"stream", true}};
+void llm_post_test(std::string msg) {
+     std::string prompt = R"(You are a code completion engine. Only output code. Do not explain. Language: C.
+             <BEGIN_CODE>)" + msg;
+    json test = {
+        {"prompt", prompt}, {"max_tokens", 64}, {"temperature", 0.15}, {"stop", {"<END_CODE>"}}, {"stream", true}};
 
     std::string payload = test.dump();
     httplib::Client client("http://127.0.0.1:8080");
@@ -32,10 +26,10 @@ void llm_post_test() {
     auto data_reciever = [&](const char *data, size_t data_length) {
         std::string chunk(data, data_length);
 
-        //std::cout << chunk << '\n';
-        //  Split lines by '\n'
-         size_t pos = 0;
-         while ((pos = chunk.find("\n")) != std::string::npos) {
+        // std::cout << chunk << '\n';
+        // Split lines by '\n'
+        size_t pos = 0;
+        while ((pos = chunk.find("\n")) != std::string::npos) {
             std::string line = chunk.substr(0, pos);
             chunk.erase(0, pos + 1);
 
@@ -61,10 +55,16 @@ void llm_post_test() {
     }
 }
 
+void message_handler_test(int clientId, std::string msg) {
+    std::cout << "Client sent: " << msg << "\n";
+    std::cout << "[END OF MSG]" << "\n";
+    llm_post_test(msg);
+}
+
 int main() {
     std::cout << "Hello World" << '\n';
     // llm_post_test();
     int socketFD = socket_init(22222);
-    start_tcp(socketFD);
+    start_tcp(socketFD, message_handler_test);
     return 0;
 }
