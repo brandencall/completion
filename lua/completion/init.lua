@@ -23,7 +23,6 @@ end
 function M.context()
     local prefix = context_bulder.text_before_cursor(10)
     local suffix = context_bulder.text_after_cursor(5)
-    print(suffix)
 end
 function M.stop()
     if client ~= nil then

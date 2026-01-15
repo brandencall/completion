@@ -19,6 +19,11 @@ function M.text_before_cursor(n)
     return prefix
 end
 
+---@return string file_name returns the current file name with extension
+function M.get_current_file_name()
+    return vim.fn.expand("%:t")
+end
+
 --- Gets the text after the cursor including the lines below it
 ---@param n number
 ---@return string suffix
