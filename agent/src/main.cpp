@@ -58,7 +58,7 @@ void llm_post_test(std::string msg) {
 void message_handler_test(int clientId, std::string msg) {
     std::cout << "Client sent: " << msg << "\n";
     std::cout << "[END OF MSG]" << "\n";
-    llm_post_test(msg);
+    //llm_post_test(msg);
 }
 
 int main() {

@@ -1,39 +1,27 @@
-local socket = require("socket")
-local bit = require("bit")
-
+local TcpClient = require("completion.tcp_client")
 
 local M = {}
+local client = nil
 
-local function send_all(sock, data)
-    local total = 0
-    while total < #data do
-        local sent, err = sock:send(data, total + 1)
-        if not sent then
-            error(err)
-        end
-        total = total + sent
+function M.start()
+    client = TcpClient:new(22222)
+    local msg = [[int sum_positive(int *arr, int len) {
+                    int total = 0;
+                    for (int i = 0; i < len; i++) {
+                        if (arr[i] > 0) {
+                            total +=]]
+    local prompt_request = {
+        type = "test",
+        prefix = msg
+    }
+    client:send_message(prompt_request)
+end
+
+function M.stop()
+    if client ~= nil then
+        print("here")
+        client:disconnect()
     end
-end
-
-local function int32_to_bytes(n)
-    return string.char(
-        bit.band(bit.rshift(n, 24), 0xff),
-        bit.band(bit.rshift(n, 16), 0xff),
-        bit.band(bit.rshift(n, 8), 0xff),
-        bit.band(n, 0xff)
-    )
-end
-
-function M.send_message(msg)
-    local client = socket.tcp()
-    assert(client:connect("127.0.0.1", 22222))
-
-    local len = int32_to_bytes(#msg)
-
-    send_all(client, len)
-    send_all(client, msg)
-
-    client:close()
 end
 
 return M

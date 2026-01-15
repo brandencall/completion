@@ -63,7 +63,7 @@ void handle_client_connection(int clientSocket, MessageHandler handler) {
     bool running = true;
     while (running) {
         uint32_t messageLength = message_length(clientSocket, running);
-        if (!running && !valid_message_length(messageLength))
+        if (!running || !valid_message_length(messageLength))
             break;
 
         std::optional<std::string> payload = client_payload(clientSocket, messageLength, running);
