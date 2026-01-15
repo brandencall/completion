@@ -1,7 +1,7 @@
 local socket = require("socket")
 
-local TcpClient = {}
-TcpClient.__index = TcpClient
+local RequestManager = {}
+RequestManager.__index = RequestManager
 
 local function send_all(sock, data)
     local total = 0
@@ -24,18 +24,21 @@ local function int32_to_bytes(n)
     )
 end
 
-function TcpClient:new(port)
+--- Create a new Request Manager object and connect to he given prot
+---@param port number Port to connect to
+---@return table newObj New Request manager object
+function RequestManager:new(port)
     local client = socket.tcp()
     assert(client:connect("127.0.0.1", port))
     local newObj = { client = client }
-    setmetatable(newObj, TcpClient)
+    setmetatable(newObj, RequestManager)
     return newObj
 end
 
 --- This function is responible for sending prompt requests to agent server. Note
 --- suffix is optional
 --- @param prompt_request table { type: string, prefix: string, suffix: string }
-function TcpClient:send_message(prompt_request)
+function RequestManager:send_message(prompt_request)
     local json = {
         type = prompt_request.type,
         prefix = prompt_request.prefix,
@@ -49,8 +52,8 @@ function TcpClient:send_message(prompt_request)
     send_all(self.client, jsonStr)
 end
 
-function TcpClient:disconnect()
+function RequestManager:disconnect()
     self.client:close()
 end
 
-return TcpClient
+return RequestManager
