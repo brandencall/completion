@@ -32,12 +32,6 @@ function TcpClient:new(port)
     return newObj
 end
 
---function TcpClient.connect(port)
---    local client = socket.tcp()
---    assert(client:connect("127.0.0.1", port))
---    return client
---end
-
 --- This function is responible for sending prompt requests to agent server. Note
 --- suffix is optional
 --- @param prompt_request table { type: string, prefix: string, suffix: string }
