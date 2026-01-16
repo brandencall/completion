@@ -5,10 +5,28 @@
 
 local M = {}
 
+--- @class PromptRequest
+--- @field type string
+--- @field prefix string
+--- @field suffix string
+--- @field file_name string
+function M.prompt_request(prefix_n, suffix_n)
+    --- @type PromptRequest
+    return {
+        type = "prompt",
+        prefix = M.text_before_cursor(prefix_n),
+        suffix = M.text_after_cursor(suffix_n),
+        file_name = M.get_current_file_name()
+    }
+end
+
 --- Gets the text before the cursor including the lines above it
 ---@param n number
 ---@return string prefix
 function M.text_before_cursor(n)
+    if n <= 0 then
+        return ""
+    end
     local cursor_pos = vim.api.nvim_win_get_cursor(0)
     local start_row = math.max(0, cursor_pos[1] - n)
     local end_row = math.max(0, cursor_pos[1] - 1)
@@ -28,6 +46,9 @@ end
 ---@param n number
 ---@return string suffix
 function M.text_after_cursor(n)
+    if n <= 0 then
+        return ""
+    end
     local cursor_pos = vim.api.nvim_win_get_cursor(0)
     local buf_line_count = vim.api.nvim_buf_line_count(0)
     local start_row = math.min(cursor_pos[1], buf_line_count)

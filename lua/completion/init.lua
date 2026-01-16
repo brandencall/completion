@@ -17,18 +17,20 @@ function M.start()
 end
 
 function M.send()
-    local msg = [[int sum_positive(int *arr, int len) {
-                    int total = 0;
-                    for (int i = 0; i < len; i++) {
-                        if (arr[i] > 0) {
-                            total +=]]
-    local prompt_request = {
-        type = "test",
-        prefix = msg
-    }
+    --local msg = [[int sum_positive(int *arr, int len) {
+    --                int total = 0;
+    --                for (int i = 0; i < len; i++) {
+    --                    if (arr[i] > 0) {
+    --                        total +=]]
+    --local msg = context_bulder.text_before_cursor(10)
+    --local prompt_request = {
+    --    type = "prompt",
+    --    prefix = msg
+    --}
+    local prompt_request = context_bulder.prompt_request(10, 2)
     if client ~= nil then
-        --client:send_message_json(prompt_request)
-        client:send_message_string(msg)
+        client:send_message_json(prompt_request)
+        --client:send_message_string(msg)
     end
 end
 
@@ -39,7 +41,6 @@ end
 
 function M.stop()
     if client ~= nil then
-        print("here")
         client:disconnect()
     end
 end

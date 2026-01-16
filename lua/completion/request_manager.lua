@@ -1,5 +1,3 @@
-local socket = require("socket")
-
 local RequestManager = {}
 RequestManager.__index = RequestManager
 
@@ -20,10 +18,11 @@ local function int32_to_bytes(n)
     )
 end
 
---- Create a new Request Manager object and connect to he given prot
+--- Create a new Request Manager object and connect to the given port
 ---@param port number Port to connect to
 ---@return table newObj New Request manager object
 function RequestManager:new(port)
+    ---@diagnostic disable: undefined-field
     local tcp = uv.new_tcp()
     local obj = {
         tcp = tcp,
@@ -62,7 +61,6 @@ end
 ---@param chunk string Chunk of data
 function RequestManager:_read_chunk(chunk)
     self.buffer = self.buffer .. chunk
-
     while true do
         if self.state == State.READ_LEN then
             if #self.buffer >= 4 then
@@ -100,16 +98,10 @@ function RequestManager:read_chunk_payload()
     end)
 end
 
---- This function is responible for sending prompt requests to agent server. Note
---- suffix is optional
---- @param prompt_request table { type: string, prefix: string, suffix: string }
+--- This function is responible for sending prompt requests to agent server.
+--- @param prompt_request PromptRequest
 function RequestManager:send_message_json(prompt_request)
-    local json = {
-        type = prompt_request.type,
-        prefix = prompt_request.prefix,
-        suffix = prompt_request.suffix or ""
-    }
-    local jsonStr = vim.json.encode(json)
+    local jsonStr = vim.json.encode(prompt_request)
 
     local len = int32_to_bytes(#jsonStr)
     self.tcp:write(len .. jsonStr)

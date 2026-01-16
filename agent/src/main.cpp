@@ -1,3 +1,4 @@
+#include "prompt_request.h"
 #include "tcp.h"
 #include <httplib.h>
 #include <iostream>
@@ -12,7 +13,7 @@ using nlohmann::json;
 using json = nlohmann::json;
 
 std::string llm_post_test(std::string msg) {
-    std::string prompt = R"(You are a code completion engine. Only output code. Do not explain. Language: C.
+    std::string prompt = R"(You are a code completion engine. Only output code. Do not explain. Language: C++.
              <BEGIN_CODE>)" +
                          msg;
     json test = {
@@ -56,10 +57,16 @@ std::string llm_post_test(std::string msg) {
 }
 
 void message_handler_test(int clientId, std::string msg) {
-    std::cout << "Client sent: " << msg << "\n";
-    std::cout << "[END OF MSG]" << "\n";
-    std::string response = llm_post_test(msg);
-    send_message(clientId, response);
+    //std::cout << "Client sent: " << msg << "\n";
+    //std::cout << "[END OF MSG]" << "\n";
+    // std::string response = llm_post_test(msg);
+    // send_message(clientId, "Server recieved: " + msg);
+    json j = json::parse(msg);
+    PromptRequest request = j.get<PromptRequest>();
+    std::cout << "type: " << request.type << "\n";
+    std::cout << "prefix: " << request.prefix << "\n";
+    std::cout << "suffix: " << request.suffix << "\n";
+    std::cout << "file_name: " << request.file_name << "\n";
 }
 
 int main() {
