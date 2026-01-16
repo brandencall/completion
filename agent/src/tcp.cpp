@@ -124,3 +124,46 @@ bool recv_exact(int sock, void *buffer, size_t length) {
 
     return true;
 }
+
+bool send_exact(int sock, const void *buffer, size_t length) {
+    size_t sent = 0;
+    const char *buf = static_cast<const char *>(buffer);
+
+    while (sent < length) {
+        ssize_t n = send(sock, buf + sent, length - sent, 0);
+
+        if (n <= 0) {
+            if (n < 0 && errno == EINTR)
+                continue;
+            perror("send");
+            return false;
+        }
+
+        sent += n;
+    }
+
+    return true;
+}
+
+bool send_message(int sock, const std::string &message) {
+    uint32_t len = message.size();
+
+    // Optional safety check
+    constexpr uint32_t MAX_MESSAGE_SIZE = 1024 * 1024;
+    if (len > MAX_MESSAGE_SIZE) {
+        std::cerr << "Message too large\n";
+        return false;
+    }
+
+    uint32_t len_network = htonl(len);
+
+    // Send header
+    if (!send_exact(sock, &len_network, sizeof(len_network)))
+        return false;
+
+    // Send payload
+    if (!send_exact(sock, message.data(), len))
+        return false;
+
+    return true;
+}

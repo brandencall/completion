@@ -16,3 +16,4 @@ uint32_t message_length(int clientSocket, bool &runFlag);
 bool valid_message_length(uint32_t messageLength);
 bool recv_exact(int sock, void *buffer, size_t length);
 std::optional<std::string> client_payload(int clientSocket, uint32_t messageLength, bool &runFlag);
+bool send_message(int sock, const std::string &message);
