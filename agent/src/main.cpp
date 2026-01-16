@@ -12,7 +12,7 @@ using nlohmann::json;
 
 using json = nlohmann::json;
 
-std::string llm_post_test(std::string msg) {
+std::string llm_post_test(int clientId, std::string msg) {
     std::string prompt = R"(You are a code completion engine. Only output code. Do not explain. Language: C++.
              <BEGIN_CODE>)" +
                          msg;
@@ -44,8 +44,9 @@ std::string llm_post_test(std::string msg) {
                 json j = json::parse(jsonStr);
                 if (j.contains("choices") && j["choices"].is_array() && !j["choices"].empty()) {
                     std::string token_text = j["choices"][0]["text"];
-                    std::cout << token_text; // append this to your buffer
+                    //std::cout << token_text; // append this to your buffer
                     buffer.append(token_text);
+                    send_message(clientId, token_text);
                 }
             }
         }
@@ -57,16 +58,14 @@ std::string llm_post_test(std::string msg) {
 }
 
 void message_handler_test(int clientId, std::string msg) {
-    //std::cout << "Client sent: " << msg << "\n";
-    //std::cout << "[END OF MSG]" << "\n";
-    // std::string response = llm_post_test(msg);
+    // std::cout << "Client sent: " << msg << "\n";
+    // std::cout << "[END OF MSG]" << "\n";
     // send_message(clientId, "Server recieved: " + msg);
     json j = json::parse(msg);
     PromptRequest request = j.get<PromptRequest>();
-    std::cout << "type: " << request.type << "\n";
-    std::cout << "prefix: " << request.prefix << "\n";
-    std::cout << "suffix: " << request.suffix << "\n";
-    std::cout << "file_name: " << request.file_name << "\n";
+    std::string response = llm_post_test(clientId, request.prefix);
+    std::cout << "FULL RESPONSE: " << '\n';
+    std::cout << response << '\n';
 }
 
 int main() {
