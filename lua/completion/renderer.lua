@@ -7,7 +7,7 @@ local buf_state = {
     text = "",
 }
 
---- Shows the agent response as virtual text. Accumulates the text overtime for streamming and rerenders 
+--- Shows the agent response as virtual text. Accumulates the text overtime for streamming and rerenders
 --- the virtual text
 ---@param text string
 function M.show_agent_response(text)
@@ -43,5 +43,31 @@ function M.clear_text()
     buf_state.mark_id = nil
     buf_state.text = ""
 end
+
+local function insert_agent_text()
+    if buf_state.text == "" or not buf_state.mark_id then
+        return
+    end
+    local row, col = unpack(
+        vim.api.nvim_buf_get_extmark_by_id(buf_state.buf, ns, buf_state.mark_id, {})
+    )
+
+    local lines = vim.split(buf_state.text, "\n", { plain = true })
+
+    vim.api.nvim_buf_set_text(
+        buf_state.buf,
+        row,
+        col,
+        row,
+        col,
+        lines
+    )
+    M.clear_text()
+end
+
+-- NEED TO CHANGE THIS TO BE INSERT MODE
+vim.keymap.set('n', '<Tab>', function()
+    insert_agent_text()
+end)
 
 return M
