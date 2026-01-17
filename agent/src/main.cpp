@@ -44,7 +44,7 @@ std::string llm_post_test(int clientId, std::string msg) {
                 json j = json::parse(jsonStr);
                 if (j.contains("choices") && j["choices"].is_array() && !j["choices"].empty()) {
                     std::string token_text = j["choices"][0]["text"];
-                    //std::cout << token_text; // append this to your buffer
+                    // std::cout << token_text; // append this to your buffer
                     buffer.append(token_text);
                     send_message(clientId, token_text);
                 }
@@ -57,21 +57,22 @@ std::string llm_post_test(int clientId, std::string msg) {
     return buffer;
 }
 
-void message_handler_test(int clientId, std::string msg) {
-    // std::cout << "Client sent: " << msg << "\n";
-    // std::cout << "[END OF MSG]" << "\n";
-    // send_message(clientId, "Server recieved: " + msg);
-    json j = json::parse(msg);
-    PromptRequest request = j.get<PromptRequest>();
-    std::string response = llm_post_test(clientId, request.prefix);
-    std::cout << "FULL RESPONSE: " << '\n';
-    std::cout << response << '\n';
-}
+// void message_handler_test(int clientId, std::string msg) {
+//     // std::cout << "Client sent: " << msg << "\n";
+//     // std::cout << "[END OF MSG]" << "\n";
+//     // send_message(clientId, "Server recieved: " + msg);
+//     json j = json::parse(msg);
+//     PromptRequest request = j.get<PromptRequest>();
+//     std::string response = llm_post_test(clientId, request.prefix);
+//     std::cout << "FULL RESPONSE: " << '\n';
+//     std::cout << response << '\n';
+// }
 
 int main() {
     std::cout << "Hello World" << '\n';
     // llm_post_test();
     int socketFD = socket_init(22222);
-    start_tcp(socketFD, message_handler_test);
+    start_tcp(socketFD, prompt_handler);
+    // start_tcp(socketFD, message_handler_test);
     return 0;
 }

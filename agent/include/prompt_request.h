@@ -13,3 +13,4 @@ struct PromptRequest {
 };
 
 void from_json(const json &j, PromptRequest &PromptRequest);
+void prompt_handler(int clientId, const std::string &request);
