@@ -1,0 +1,12 @@
+Working params currently:
+    json jsonRequest = {{"max_tokens", 64},
+                        {"input_prefix", prefix},
+                        {"input_suffix", request.suffix},
+                        {"temperature", 0.1},
+                        {"stop", {"\n\n", "\n\n\n", "<fim_prefix>", "<fim_suffix>", "<fim_middle>", "```", "</"}},
+                        {"top-p", 0.9},
+                        {"top-k", 40},
+                        {"repeat-penalty", 1.1},
+                        {"presence-penalty", 0.0},
+                        {"frequency-penalty", 0.0},
+                        {"stream", true}};

@@ -12,14 +12,16 @@ void from_json(const json &j, PromptRequest &PromptRequest) {
 
 void llm_request(int clientId, PromptRequest &request) {
     std::string prefix = "<file>" + request.file_name + "</file>\n" + request.prefix;
-    json jsonRequest = {{"max_tokens", 64},
+    std::cout << "Prefix:\n" << prefix << "\n";
+    std::cout << "Suffix:\n" << request.suffix << "\n";
+    json jsonRequest = {{"max_tokens", 128},
                         {"input_prefix", prefix},
                         {"input_suffix", request.suffix},
-                        {"temperature", 0.2},
-                        {"stop", {"\n\n", "\n\n\n", "", "<"}},
-                        {"top-p", 0.85},
-                        {"top-k", 20},
-                        {"repeat-penalty", 1.05},
+                        {"temperature", 0.7},
+                        {"stop", {"\n\n", "\n\n\n", "<fim_prefix>", "<fim_suffix>", "<fim_middle>", "```", "</"}},
+                        {"top-p", 0.9},
+                        {"top-k", 40},
+                        {"repeat-penalty", 1.1},
                         {"presence-penalty", 0.0},
                         {"frequency-penalty", 0.0},
                         {"stream", true}};
@@ -29,6 +31,7 @@ void llm_request(int clientId, PromptRequest &request) {
 
     httplib::Headers headers = {{"Content-Type", "application/json"}};
 
+    std::cout << "LLM Response:\n";
     auto data_reciever = [&](const char *data, size_t data_length) {
         std::string chunk(data, data_length);
         //  Split lines by '\n'
@@ -43,6 +46,7 @@ void llm_request(int clientId, PromptRequest &request) {
                     if (j["stop"] == true)
                         break;
                     std::string token_text = j["content"];
+                    std::cout << token_text;
                     send_message(clientId, token_text);
                 }
             }
@@ -51,6 +55,7 @@ void llm_request(int clientId, PromptRequest &request) {
     };
 
     auto res = client.Post("/infill", headers, payload, "application/json", data_reciever);
+    std::cout << "\n";
 }
 
 void prompt_handler(int clientId, const std::string &request) {

@@ -15,6 +15,7 @@ function M.prompt_request(prefix_n, suffix_n)
     return {
         type = "prompt",
         prefix = M.text_before_cursor(prefix_n),
+        -- Bug with missing the last line of the function (`end` for lua)
         suffix = M.text_after_cursor(suffix_n),
         file_name = M.get_current_file_name()
     }
@@ -86,10 +87,6 @@ function M.get_current_function_pos()
         return start_row, end_row
     end
     return -1, -1
-end
-
-function M.testing()
-
 end
 
 return M
