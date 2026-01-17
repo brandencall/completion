@@ -12,16 +12,14 @@ void from_json(const json &j, PromptRequest &PromptRequest) {
 
 void llm_request(int clientId, PromptRequest &request) {
     std::string prefix = "<file>" + request.file_name + "</file>\n" + request.prefix;
-    std::cout << "Prefix:\n" << prefix << '\n';
-    std::cout << "Suffix:\n" << request.suffix << '\n';
     json jsonRequest = {{"max_tokens", 64},
                         {"input_prefix", prefix},
                         {"input_suffix", request.suffix},
-                        {"temperature", 0.1},
-                        {"stop", {"\n\n", "\n\n\n", "<fim_prefix>", "<fim_suffix>", "<fim_middle>", "```", "</"}},
-                        {"top-p", 0.9},
-                        {"top-k", 40},
-                        {"repeat-penalty", 1.1},
+                        {"temperature", 0.2},
+                        {"stop", {"\n\n", "\n\n\n", "", "<"}},
+                        {"top-p", 0.85},
+                        {"top-k", 20},
+                        {"repeat-penalty", 1.05},
                         {"presence-penalty", 0.0},
                         {"frequency-penalty", 0.0},
                         {"stream", true}};
