@@ -5,6 +5,7 @@
 
 local M = {}
 
+
 --- @class PromptRequest
 --- @field type string
 --- @field prefix string
@@ -78,15 +79,35 @@ end
 
 --- Returns the starting row and ending row of the current function. If no function node is found, returns -1 for both.
 --- Note: Offset it by 1 (since nvim is 1 based and treesitter is 0 based)
----@return integer start_row starting row of the function
----@return integer end_row ending row of the function
+---@return integer? start_row starting row of the function
+---@return integer? end_row ending row of the function
 function M.get_current_function_pos()
     local function_node = get_function_node()
     if function_node then
         local start_row, _, end_row, _ = function_node:range()
         return start_row, end_row
     end
-    return -1, -1
+end
+
+--- @class TreesitterModel
+--- @field current_node TSNode?
+--- @field func_start number?
+--- @field func_end number?
+
+--- @return TreesitterModel
+function M.get_treesitter_model()
+    local start_row, end_row = M.get_current_function_pos()
+    --- @type TreesitterModel
+    return {
+        current_node = vim.treesitter.get_node(),
+        func_start = start_row,
+        func_end = end_row
+    }
+end
+
+function M.print_tree()
+    local model = M.get_treesitter_model()
+    print("Current node type: " .. model.current_node:type())
 end
 
 return M

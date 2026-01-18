@@ -61,29 +61,42 @@ function M.clear_text()
 end
 
 local function insert_agent_text()
-    if buf_state.text == "" or not buf_state.mark_id then
-        return
+    if not buf_state or buf_state.text == "" or not buf_state.mark_id then
+        return "\t"
     end
     local row, col = unpack(
         vim.api.nvim_buf_get_extmark_by_id(buf_state.buf, ns, buf_state.mark_id, {})
     )
-
     local lines = vim.split(buf_state.text, "\n", { plain = true })
 
-    vim.api.nvim_buf_set_text(
-        buf_state.buf,
-        row,
-        col,
-        row,
-        col,
-        lines
-    )
+    vim.schedule(function()
+        vim.api.nvim_buf_set_text(
+            buf_state.buf,
+            row,
+            col,
+            row,
+            col,
+            lines
+        )
+    end)
+    local new_row = row + #lines - 1
+    local new_col
+    if #lines == 1 then
+        new_col = col + #lines[1]
+    else
+        new_col = #lines[#lines]
+    end
+
+    vim.schedule(function()
+        vim.api.nvim_win_set_cursor(0, { new_row + 1, new_col })
+    end)
+
     M.clear_text()
+
+    return ""
 end
 
 -- NEED TO CHANGE THIS TO BE INSERT MODE
-vim.keymap.set('n', '<Tab>', function()
-    insert_agent_text()
-end)
+vim.keymap.set('i', '<Tab>', insert_agent_text, { expr = true, silent = true })
 
 return M

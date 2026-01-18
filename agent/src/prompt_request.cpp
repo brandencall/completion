@@ -1,6 +1,7 @@
 #include "prompt_request.h"
 #include "tcp.h"
 #include <httplib.h>
+#include <optional>
 #include <string>
 
 void from_json(const json &j, PromptRequest &PromptRequest) {
@@ -59,6 +60,8 @@ void llm_request(int clientId, PromptRequest &request) {
 }
 
 void prompt_handler(int clientId, const std::string &request) {
+    if (request == std::string::npos)
+        return;
     json j = json::parse(request);
     PromptRequest promptRequest = j.get<PromptRequest>();
     llm_request(clientId, promptRequest);

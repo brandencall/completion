@@ -15,16 +15,25 @@ function M.start()
             renderer.show_agent_response(response)
         end,
     })
+    vim.api.nvim_create_autocmd("User", {
+        pattern = "AgentRequest",
+        callback = function(event)
+            local prompt_request = event.data.request
+            if client ~= nil then
+                client:send_message_json(prompt_request)
+            end
+        end,
+    })
 end
 
-function M.func()
-    local start_row, end_row = context_bulder.get_current_function_pos()
-    print("start_row: " .. start_row .. ", end_row: " .. end_row)
+function M.print_tree()
+    local model = context_bulder.get_treesitter_model()
+    print("Current node type: " .. model.current_node:type())
 end
 
 function M.send()
     local start_row, end_row = context_bulder.get_current_function_pos()
-    if start_row == -1 and end_row == -1 then
+    if start_row == nil or end_row == nil then
         local cursor_pos = vim.api.nvim_win_get_cursor(0)
         start_row = cursor_pos[1] - 40
         end_row = 20
