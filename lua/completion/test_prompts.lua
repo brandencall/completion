@@ -1,3 +1,4 @@
+local M = {}
 -- EXPECTED OUTPUT:
 --         sum = sum + i
 --         i = i + 1
@@ -5,7 +6,7 @@
 --
 --     return sum
 -- end
-local function sum_upto(n)
+function M.sum_upto(n)
     local sum = 0
     local i = 1
 
@@ -21,7 +22,7 @@ end
 --
 --     return false
 -- end
-local function contains_zero(values)
+function M.contains_zero(values)
     for i = 1, #values do
         if values[i] == 0 then
 
@@ -36,7 +37,7 @@ end
 --
 --     return result
 -- end
-local function filter_positive(values)
+function M.filter_positive(values)
     local result = {}
 
     for i = 1, #values do
@@ -77,3 +78,5 @@ local function find_first_nil(values)
         end
     end
 end
+
+return M

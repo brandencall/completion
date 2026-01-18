@@ -18,6 +18,7 @@ M.States = {
     DISPLAYING = 4,
     SUSPENDING = 5
 }
+
 local current_state = M.States.IDLE
 ---@diagnostic disable: undefined-field
 local eligible_timer = uv.new_timer()
@@ -45,11 +46,6 @@ end
 function M.get_state()
     return current_state
 end
-
-vim.api.nvim_create_autocmd("ModeChanged", {
-    callback = on_mode_change,
-    desc = "Callback function when mode changes"
-})
 
 local function user_typing()
     set_state(M.States.TYPING)

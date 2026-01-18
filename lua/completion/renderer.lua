@@ -19,20 +19,36 @@ function M.show_agent_response(text)
     vim.api.nvim_buf_clear_namespace(buf_state.buf, ns, 0, -1)
 
     local lines = {}
+    local firstLine = {}
     for line in buf_state.text:gmatch("[^\r\n]+") do
-        table.insert(lines, {
-            { line, "Comment" }
-        })
+        if #firstLine == 0 then
+            table.insert(firstLine, {
+                { line, "Comment" }
+            })
+        else
+            table.insert(lines, {
+                { line, "Comment" }
+            })
+        end
     end
-
     buf_state.mark_id = vim.api.nvim_buf_set_extmark(
         buf_state.buf,
         ns,
         row,
         col,
         {
-            virt_text_pos = "overlay",
-            virt_lines = lines
+            virt_text = firstLine[1],
+            virt_text_pos = "inline",
+            hl_mode = "combine"
+        }
+    )
+    buf_state.mark_id = vim.api.nvim_buf_set_extmark(
+        buf_state.buf,
+        ns,
+        row,
+        col,
+        {
+            virt_lines = lines,
         }
     )
 end
