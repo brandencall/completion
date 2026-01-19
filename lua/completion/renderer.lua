@@ -96,7 +96,6 @@ local function insert_agent_text()
     return ""
 end
 
--- NEED TO CHANGE THIS TO BE INSERT MODE
 vim.keymap.set('i', '<Tab>', insert_agent_text, { expr = true, silent = true })
 
 return M

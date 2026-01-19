@@ -1,24 +1,17 @@
--- Current context gathering will on raw lines.
--- Later context gathering will query treesitter to see if in a function. If we are in a function,
--- Use function start -> cursor as prefix, and cursor -> function end as suffix
--- Else, we just fall back to raw lines
-
 local M = {}
 
-
 --- @class PromptRequest
---- @field type string
 --- @field prefix string
 --- @field suffix string
---- @field file_name string
 function M.prompt_request(prefix_n, suffix_n)
+    local file_name = M.get_current_file_name()
+    local prefix = M.text_before_cursor(prefix_n)
+    local suffix = M.text_after_cursor(suffix_n)
     --- @type PromptRequest
     return {
-        type = "prompt",
-        prefix = M.text_before_cursor(prefix_n),
+        prefix = "<file>" .. file_name .. "</file>\n" .. prefix,
         -- Bug with missing the last line of the function (`end` for lua)
-        suffix = M.text_after_cursor(suffix_n),
-        file_name = M.get_current_file_name()
+        suffix = suffix,
     }
 end
 

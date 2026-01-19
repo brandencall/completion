@@ -6,34 +6,35 @@ local M = {}
 local state_group = vim.api.nvim_create_augroup("CompletionStateGroup", { clear = true })
 local uv = vim.uv
 
-local function debug(text)
-    local file = assert(io.open("test.txt", "a"))
-    file:write(text)
-    file:close()
-end
-
 ---@alias State
----| 0  -- IDLE
----| 1  -- TYPING
----| 2  -- ELIGIBLE
----| 3  -- REQUESTING
----| 4  -- DISPLAYING
----| 5  -- SUSPENDING
+---| -1  -- DISABLED
+---| 0  -- ENABLED
+---| 1  -- IDLE
+---| 2  -- TYPING
+---| 3  -- ELIGIBLE
+---| 4  -- REQUESTING
+---| 5  -- DISPLAYING
+---| 6  -- SUSPENDING
 M.States = {
-    IDLE = 0,
-    TYPING = 1,
-    ELIGIBLE = 2,
-    REQUESTING = 3,
-    DISPLAYING = 4,
-    SUSPENDING = 5
+    DISABLED = -1,
+    ENABLED = 0,
+    IDLE = 1,
+    TYPING = 2,
+    ELIGIBLE = 3,
+    REQUESTING = 4,
+    DISPLAYING = 5,
+    SUSPENDING = 6
 }
 
-local current_state = M.States.IDLE
+local current_state = M.States.DISABLED
 ---@diagnostic disable: undefined-field
 local eligible_timer = uv.new_timer()
 
 ---@param new_state State
 local function set_state(new_state)
+    if M.get_state() == M.States.DISABLED and new_state ~= M.States.ENABLED then
+        return
+    end
     if current_state == new_state then
         return
     end
@@ -51,14 +52,25 @@ local function on_mode_change()
     end
 end
 
-function M.get_state()
-    return current_state
-end
-
 vim.api.nvim_create_autocmd("ModeChanged", {
     callback = on_mode_change,
     desc = "Callback function when mode changes"
 })
+
+function M.enable()
+    set_state(M.States.ENABLED)
+end
+
+function M.disable()
+    vim.api.nvim_exec_autocmds("User", {
+        pattern = "PluginDisabled"
+    })
+    set_state(M.States.DISABLED)
+end
+
+function M.get_state()
+    return current_state
+end
 
 -- The logic that decides whether or not to prompt the llm
 local function validate_eligibility()

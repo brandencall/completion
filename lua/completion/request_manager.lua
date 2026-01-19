@@ -1,3 +1,6 @@
+local Job = require("plenary.job")
+local json = vim.json
+
 local RequestManager = {}
 RequestManager.__index = RequestManager
 
