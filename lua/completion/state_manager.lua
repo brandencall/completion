@@ -72,6 +72,17 @@ function M.get_state()
     return current_state
 end
 
+local function is_curr_node_type_valid(cur_node_type)
+    if cur_node_type == "string_literal"
+        or cur_node_type == "string"
+        or cur_node_type == "string_content"
+        or cur_node_type == "comment"
+    then
+        return false
+    end
+    return true
+end
+
 -- The logic that decides whether or not to prompt the llm
 local function validate_eligibility()
     local treesitter_model = context_bulder.get_treesitter_model()
@@ -80,7 +91,7 @@ local function validate_eligibility()
         return
     end
     local cur_node_type = treesitter_model.current_node:type()
-    if cur_node_type == "string_literal" or cur_node_type == "comment" then
+    if not is_curr_node_type_valid(cur_node_type) then
         return
     end
     local prompt_request = context_bulder.prompt_request(treesitter_model.func_start, treesitter_model.func_end)

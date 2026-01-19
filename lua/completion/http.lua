@@ -3,11 +3,6 @@ local json = vim.json
 
 local M = {}
 
-local function debug(text)
-    local file = assert(io.open("test.txt", "a"))
-    file:write(text)
-    file:close()
-end
 
 local function stream_llm_post(url, body_table, on_chunk_callback, on_complete_callback)
     local body_json = json.encode(body_table)
