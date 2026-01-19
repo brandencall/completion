@@ -36,7 +36,11 @@ vim.api.nvim_create_autocmd("User", {
 
 function M.print_tree()
     local model = context_bulder.get_treesitter_model()
+    local parent = model.current_node:parent()
     print("Current node type: " .. model.current_node:type())
+    if parent ~= nil then
+        print("Parent node type: " .. parent:type())
+    end
 end
 
 local function debug(text)

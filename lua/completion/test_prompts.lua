@@ -14,7 +14,6 @@ function M.sum_upto(n)
     end
 end
 
-
 -- EXPECTED OUTPUT:
 --         return true
 --     end
@@ -24,6 +23,7 @@ end
 function M.contains_zero(values)
     for i = 1, #values do
         if values[i] == 0 then
+
         end
     end
 end

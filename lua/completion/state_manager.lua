@@ -72,7 +72,10 @@ function M.get_state()
     return current_state
 end
 
-local function is_curr_node_type_valid(cur_node_type)
+---@param treesitter_model TreesitterModel
+---@return boolean
+local function is_curr_node_valid(treesitter_model)
+    local cur_node_type = treesitter_model.current_node:type()
     if cur_node_type == "string_literal"
         or cur_node_type == "string"
         or cur_node_type == "string_content"
@@ -90,8 +93,12 @@ local function validate_eligibility()
     if treesitter_model.func_start == nil or treesitter_model.func_end == nil then
         return
     end
-    local cur_node_type = treesitter_model.current_node:type()
-    if not is_curr_node_type_valid(cur_node_type) then
+    if treesitter_model.current_node:type() ~= "block"
+        and treesitter_model.current_node:parent():type() ~= "block"
+        and treesitter_model.current_node:type() ~= "function_declaration" then
+        return
+    end
+    if not is_curr_node_valid(treesitter_model) then
         return
     end
     local prompt_request = context_bulder.prompt_request(treesitter_model.func_start, treesitter_model.func_end)
