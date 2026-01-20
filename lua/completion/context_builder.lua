@@ -60,8 +60,7 @@ end
 
 --- Returns the treesitter node of the current function
 ---@return TSNode?
-local function get_function_node()
-    local current_node = vim.treesitter.get_node()
+local function get_function_node(current_node)
     if current_node then
         while current_node and current_node:type() ~= "function_declaration" do
             current_node = current_node:parent()
@@ -74,27 +73,49 @@ end
 --- Note: Offset it by 1 (since nvim is 1 based and treesitter is 0 based)
 ---@return integer? start_row starting row of the function
 ---@return integer? end_row ending row of the function
-function M.get_current_function_pos()
-    local function_node = get_function_node()
+function M.get_current_function_pos(curr_node)
+    local function_node = get_function_node(curr_node)
     if function_node then
         local start_row, _, end_row, _ = function_node:range()
         return start_row, end_row
     end
 end
 
---- @class TreesitterModel
---- @field current_node TSNode?
---- @field func_start number?
---- @field func_end number?
+local function contains_err_node(node)
+    if node:type() == "ERROR" then
+        return true
+    end
+    for i = 0, node:child_count() - 1 do
+        return contains_err_node(node:child(i))
+    end
+    return false
+end
 
---- @return TreesitterModel
-function M.get_treesitter_model()
-    local start_row, end_row = M.get_current_function_pos()
-    --- @type TreesitterModel
+--- @class ContextSnapshot
+--- @field node_type string
+--- @field node_start number
+--- @field node_end number
+--- @field curr_row number
+--- @field err_node_present boolean
+--- @field func_node_start integer
+--- @field func_node_end integer
+--- @return ContextSnapshot?
+function M.get_context_snapshot()
+    local curr_node = vim.treesitter.get_node()
+    local func_node_start, func_node_end = M.get_current_function_pos(curr_node)
+    if not curr_node or not func_node_start or not func_node_end then
+        return nil
+    end
+    local row, _ = unpack(vim.api.nvim_win_get_cursor(0))
+    --- @type ContextSnapshot
     return {
-        current_node = vim.treesitter.get_node(),
-        func_start = start_row,
-        func_end = end_row
+        node_type = curr_node:type(),
+        node_start = curr_node:start(),
+        node_end = curr_node:end_(),
+        curr_row = row - 1,
+        err_node_present = contains_err_node(curr_node),
+        func_node_start = func_node_start,
+        func_node_end = func_node_end
     }
 end
 

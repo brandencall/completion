@@ -43,10 +43,4 @@ function M.print_tree()
     end
 end
 
-local function debug(text)
-    local file = assert(io.open("test.txt", "a"))
-    file:write(text)
-    file:close()
-end
-
 return M
