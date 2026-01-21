@@ -1,13 +1,8 @@
 local context_bulder = require("completion.context_builder")
 local renderer = require("completion.renderer")
+local debug = require("completion.debug")
 
 local M = {}
-
-local function debug(text)
-    local file = assert(io.open("test.txt", "a"))
-    file:write(text)
-    file:close()
-end
 
 local state_group = vim.api.nvim_create_augroup("CompletionStateGroup", { clear = true })
 local uv = vim.uv
@@ -31,11 +26,6 @@ M.States = {
     DISPLAYING = 5,
     SUSPENDING = 6
 }
-
----@type ContextSnapshot?
-local current_snapshot = nil
----@type ContextSnapshot?
-local last_snapshot = nil
 
 
 local current_state = M.States.DISABLED
@@ -85,121 +75,24 @@ function M.get_state()
 end
 
 ---@param context ContextSnapshot
----@return boolean
-local function is_curr_node_valid(context)
-    if context.node_type == "string_literal"
-        or context.node_type == "string"
-        or context.node_type == "string_content"
-        or context.node_type == "comment"
-    then
-        return false
-    end
-    return true
-end
-
----@param context ContextSnapshot
 local function determine_if_eligible(context)
     if context.node_type == "if_statement"
         or context.node_type == "while_statement"
         or context.node_type == "for_statement"
     then
-        if context.curr_row > context.node_start and context.curr_row < context.node_end then
+        if not context.err_node_present and
+            context.curr_row > context.node_start
+            and context.curr_row < context.node_end
+        then
             set_state(M.States.ELIGIBLE)
         end
+    elseif context.node_type == "assignment_statement" or context.node_type == "binary_expression" then
+        set_state(M.States.ELIGIBLE)
+    elseif context.node_type:match("function") and not context.err_node_present then
+        set_state(M.States.ELIGIBLE)
     end
 end
 
-local function DebugTreesitterAtCursor()
-    local buftype = vim.api.nvim_get_option_value('buftype', { buf = 0 })
-    if buftype ~= "" then
-        return
-    end
-    local api = vim.api
-    local ts = vim.treesitter
-
-    local buf = api.nvim_get_current_buf()
-    local row, col = unpack(api.nvim_win_get_cursor(0))
-    row = row - 1
-
-    local byte = api.nvim_buf_get_offset(buf, row) + col
-
-    local named_node = ts.get_node()
-    if not named_node then
-        debug("No named node at cursor")
-        return
-    end
-
-    ---@type TSNode?
-    local raw_node = named_node
-    while raw_node and raw_node:type() == named_node:type() do
-        raw_node = raw_node:parent()
-    end
-
-    debug("\n=== CURSOR ===\n")
-    debug("Current line: " .. vim.api.nvim_get_current_line() .. "\n")
-    debug("Row: " .. row + 1 .. " , Col:" .. col .. "\n")
-    debug("Byte offset: " .. byte)
-
-    debug("\n=== NODE UNDER CURSOR ===\n")
-    debug("Named node: " .. named_node:type() .. "\n")
-    debug("Range: " .. named_node:start() .. ", " .. named_node:end_())
-
-    debug("\n=== PARENT CHAIN ===\n")
-    ---@type TSNode?
-    local cur = named_node
-    while cur do
-        debug("-" .. cur:type())
-        if cur:type():match("function")
-            or cur:type():match("method")
-            or cur:type() == "block" then
-            break
-        end
-        cur = cur:parent()
-    end
-
-    debug("\n=== CHILDREN OF NEAREST SCOPE ===\n")
-    -- Add method check along with function
-    ---@type TSNode?
-    local scope = named_node
-    while scope and scope:type() ~= "block"
-        and not scope:type():match("function") do
-        scope = scope:parent()
-    end
-
-    if scope then
-        debug("Scope: " .. scope:type() .. "\n")
-        for i = 0, scope:child_count() - 1 do
-            local child = scope:child(i)
-            if child ~= nil then
-                debug(string.format(
-                    "   [%d] %s (%d → %d)\n",
-                    i,
-                    child:type(),
-                    child:start(),
-                    child:end_()
-                ))
-            end
-        end
-    end
-
-    debug("\n=== ERROR NODES IN SCOPE ===\n")
-    local function scan(n)
-        if n:type() == "ERROR" then
-            debug("ERROR:" .. n:start() .. "→" .. n:end_())
-        elseif n:type() == "MISSING" then
-            debug("MISSING:" .. n:start() .. "→" .. n:end_())
-        end
-        for i = 0, n:child_count() - 1 do
-            scan(n:child(i))
-        end
-    end
-
-    if scope then
-        scan(scope)
-    end
-
-    debug("\n=== DONE ===\n\n")
-end
 
 local function user_typing()
     local buftype = vim.api.nvim_get_option_value('buftype', { buf = 0 })
@@ -212,12 +105,11 @@ local function user_typing()
     if context_test == nil then
         return
     end
-    determine_if_eligible(context_test)
     eligible_timer:start(1000, 0, vim.schedule_wrap(function()
+        determine_if_eligible(context_test)
         if M.get_state() == M.States.ELIGIBLE then
-            debug("Prompting...\n")
             local prompt_request = context_bulder.prompt_request(context_test.func_node_start, context_test
-            .func_node_end)
+                .func_node_end)
             vim.api.nvim_exec_autocmds("User", {
                 pattern = "AgentRequest",
                 data = { request = prompt_request },

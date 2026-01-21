@@ -1,6 +1,6 @@
 local M = {}
 
-local function debug(text)
+function M.debug(text)
     local file = assert(io.open("test.txt", "a"))
     file:write(text)
     file:close()
@@ -22,7 +22,7 @@ function M.DebugTreesitterAtCursor()
 
     local named_node = ts.get_node()
     if not named_node then
-        debug("No named node at cursor")
+        M.debug("No named node at cursor")
         return
     end
 
@@ -32,20 +32,20 @@ function M.DebugTreesitterAtCursor()
         raw_node = raw_node:parent()
     end
 
-    debug("\n=== CURSOR ===\n")
-    debug("Current line: " .. vim.api.nvim_get_current_line() .. "\n")
-    debug("Row: " .. row + 1 .. " , Col:" .. col .. "\n")
-    debug("Byte offset: " .. byte)
+    M.debug("\n=== CURSOR ===\n")
+    M.debug("Current line: " .. vim.api.nvim_get_current_line() .. "\n")
+    M.debug("Row: " .. row + 1 .. " , Col:" .. col .. "\n")
+    M.debug("Byte offset: " .. byte)
 
-    debug("\n=== NODE UNDER CURSOR ===\n")
-    debug("Named node: " .. named_node:type() .. "\n")
-    debug("Range: " .. named_node:start() .. ", " .. named_node:end_())
+    M.debug("\n=== NODE UNDER CURSOR ===\n")
+    M.debug("Named node: " .. named_node:type() .. "\n")
+    M.debug("Range: " .. named_node:start() .. ", " .. named_node:end_())
 
-    debug("\n=== PARENT CHAIN ===\n")
+    M.debug("\n=== PARENT CHAIN ===\n")
     ---@type TSNode?
     local cur = named_node
     while cur do
-        debug("-" .. cur:type())
+        M.debug("-" .. cur:type())
         if cur:type():match("function")
             or cur:type():match("method")
             or cur:type() == "block" then
@@ -54,7 +54,7 @@ function M.DebugTreesitterAtCursor()
         cur = cur:parent()
     end
 
-    debug("\n=== CHILDREN OF NEAREST SCOPE ===\n")
+    M.debug("\n=== CHILDREN OF NEAREST SCOPE ===\n")
     -- Add method check along with function
     ---@type TSNode?
     local scope = named_node
@@ -64,11 +64,11 @@ function M.DebugTreesitterAtCursor()
     end
 
     if scope then
-        debug("Scope: " .. scope:type() .. "\n")
+        M.debug("Scope: " .. scope:type() .. "\n")
         for i = 0, scope:child_count() - 1 do
             local child = scope:child(i)
             if child ~= nil then
-                debug(string.format(
+                M.debug(string.format(
                     "   [%d] %s (%d → %d)\n",
                     i,
                     child:type(),
@@ -79,12 +79,10 @@ function M.DebugTreesitterAtCursor()
         end
     end
 
-    debug("\n=== ERROR NODES IN SCOPE ===\n")
+    M.debug("\n=== ERROR NODES IN SCOPE ===\n")
     local function scan(n)
         if n:type() == "ERROR" then
-            debug("ERROR:" .. n:start() .. "→" .. n:end_())
-        elseif n:type() == "MISSING" then
-            debug("MISSING:" .. n:start() .. "→" .. n:end_())
+            M.debug("ERROR:" .. n:start() .. "→" .. n:end_())
         end
         for i = 0, n:child_count() - 1 do
             scan(n:child(i))
@@ -95,7 +93,7 @@ function M.DebugTreesitterAtCursor()
         scan(scope)
     end
 
-    debug("\n=== DONE ===\n\n")
+    M.debug("\n=== DONE ===\n\n")
 end
 
 return M
