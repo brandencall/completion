@@ -1,4 +1,5 @@
 local Job = require("plenary.job")
+local debug = require("completion.debug")
 local json = vim.json
 
 local M = {}
@@ -45,7 +46,13 @@ local function stream_llm_post(url, body_table, on_chunk_callback, on_complete_c
             end
             if data then
                 local ok, parsed = pcall(json.decode, string.sub(data, 7))
-                if ok and parsed.content then
+                if ok and parsed.stop == true then
+                    vim.schedule(function()
+                        vim.api.nvim_exec_autocmds("User", {
+                            pattern = "PromptFinished"
+                        })
+                    end)
+                elseif ok and parsed.content then
                     on_chunk_callback(parsed.content)
                 end
             end

@@ -8,42 +8,6 @@ local buf_state = {
     text = "",
 }
 
-vim.api.nvim_create_autocmd("User", {
-    pattern = "AgentResponse",
-    callback = function(event)
-        local response = event.data.response
-        M.show_agent_response(response)
-    end,
-})
-
-vim.api.nvim_create_autocmd("User", {
-    pattern = "IdleState",
-    callback = function()
-        M.clear_text()
-    end
-})
-
-vim.api.nvim_create_autocmd("User", {
-    pattern = "UserTypeing",
-    callback = function()
-        M.clear_text()
-    end
-})
-
-vim.api.nvim_create_autocmd("User", {
-    pattern = "AgentRequest",
-    callback = function()
-        M.clear_text()
-    end
-})
-
-vim.api.nvim_create_autocmd("User", {
-    pattern = "PluginDisabled",
-    callback = function()
-        M.clear_text()
-    end,
-})
-
 --- Shows the agent response as virtual text. Accumulates the text overtime for streamming and rerenders
 --- the virtual text. Should only ever show the text while in insert mode
 ---@param text string
@@ -132,10 +96,45 @@ local function insert_agent_text()
     end)
 
     M.clear_text()
-
     return ""
 end
 
 vim.keymap.set('i', '<Tab>', insert_agent_text, { expr = true, silent = true })
+
+vim.api.nvim_create_autocmd("User", {
+    pattern = "AgentResponse",
+    callback = function(event)
+        local response = event.data.response
+        M.show_agent_response(response)
+    end,
+})
+
+vim.api.nvim_create_autocmd("User", {
+    pattern = "IdleState",
+    callback = function()
+        M.clear_text()
+    end
+})
+
+vim.api.nvim_create_autocmd("User", {
+    pattern = "UserTyping",
+    callback = function()
+        M.clear_text()
+    end
+})
+
+vim.api.nvim_create_autocmd("User", {
+    pattern = "AgentRequest",
+    callback = function()
+        M.clear_text()
+    end
+})
+
+vim.api.nvim_create_autocmd("User", {
+    pattern = "PluginDisabled",
+    callback = function()
+        M.clear_text()
+    end,
+})
 
 return M

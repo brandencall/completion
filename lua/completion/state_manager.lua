@@ -13,19 +13,23 @@ local uv = vim.uv
 ---| 2  -- IDLE
 ---| 3  -- TYPING
 ---| 4  -- ELIGIBLE
----| 5  -- SUSPENDING
+---| 5  -- SUSPENDED
+---| 6  -- DISPLAYING
+---| 7  -- ACCEPTED
 M.States = {
     DISABLED = 0,
     ENABLED = 1,
     IDLE = 2,
     TYPING = 3,
     ELIGIBLE = 4,
-    SUSPENDING = 5
+    SUSPENDED = 5,
+    DISPLAYING = 6
 }
 
 local current_state = M.States.DISABLED
 ---@diagnostic disable: undefined-field
 local eligible_timer = uv.new_timer()
+local suspend_timer = uv.new_timer()
 
 ---@param new_state State
 local function set_state(new_state)
@@ -72,7 +76,7 @@ function M.get_state()
 end
 
 ---@param context ContextSnapshot
-local function determine_if_eligible(context)
+local function is_eligible(context)
     if context.node_type == "if_statement"
         or context.node_type == "while_statement"
         or context.node_type == "for_statement"
@@ -81,33 +85,41 @@ local function determine_if_eligible(context)
             context.curr_row > context.node_start
             and context.curr_row < context.node_end
         then
-            set_state(M.States.ELIGIBLE)
+            return true
         end
     elseif context.node_type == "assignment_statement" or context.node_type == "binary_expression" then
-        set_state(M.States.ELIGIBLE)
+        return true
     elseif context.node_type:match("function") and not context.err_node_present then
-        set_state(M.States.ELIGIBLE)
+        return true
     end
+    return false
 end
 
+local function suspend(suspend_time)
+    set_state(M.States.SUSPENDED)
+    suspend_timer:start(suspend_time, 0, function()
+        set_state(M.States.IDLE)
+    end)
+end
 
 local function user_typing()
     local buftype = vim.api.nvim_get_option_value('buftype', { buf = 0 })
     if buftype ~= "" then
         return
     end
-    set_state(M.States.TYPING)
+    if M.get_state() == M.States.DISPLAYING then
+        suspend(4000)
+    end
     vim.api.nvim_exec_autocmds("User", {
-        pattern = "UserTypeing"
+        pattern = "UserTyping"
     })
-    local context_test = context_bulder.get_context_snapshot()
-    if context_test == nil then
+    local context = context_bulder.get_context_snapshot()
+    if context == nil then
         return
     end
     eligible_timer:start(1000, 0, vim.schedule_wrap(function()
-        determine_if_eligible(context_test)
-        if M.get_state() == M.States.ELIGIBLE then
-            local prompt_request = context_bulder.prompt_request(context_test.func_node_start, context_test
+        if is_eligible(context) and M.get_state() ~= M.States.SUSPENDED then
+            local prompt_request = context_bulder.prompt_request(context.func_node_start, context
                 .func_node_end)
             vim.api.nvim_exec_autocmds("User", {
                 pattern = "AgentRequest",
@@ -117,6 +129,12 @@ local function user_typing()
     end))
 end
 
+vim.api.nvim_create_autocmd("User", {
+    pattern = "PromptFinished",
+    callback = function()
+        set_state(M.States.DISPLAYING)
+    end
+})
 
 vim.api.nvim_create_autocmd("TextChangedI", {
     group = state_group,

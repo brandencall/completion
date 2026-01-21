@@ -18,3 +18,8 @@
           to get the outter most function in the future. Lua in many cases has many nested functions (callbacks)
     - BUG: The render got an invalid buffer id somehow. Probably not tracking buffers correctly
     [X] BUG: Sometimes renders after exiting insert mode (Guess is the request is already in flight by the time we switch back)
+    - Setup a way to do configuration in nvim configuration
+        - Configure LLM model + it's configuration
+        - Configure suspend time (?)
+    - On startup, figure out a way to start up the LLM server
+        - Need to checks on whether llama.cpp is installed, etc.
