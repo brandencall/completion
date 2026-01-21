@@ -1,6 +1,6 @@
 local context_bulder = require("completion.context_builder")
-local renderer = require("completion.renderer")
-local debug = require("completion.debug")
+--local renderer = require("completion.renderer")
+--local debug = require("completion.debug")
 
 local M = {}
 
@@ -50,7 +50,9 @@ local function on_mode_change()
     local mode = event.new_mode
     if not mode:match("[iI]") then
         set_state(M.States.IDLE)
-        renderer.clear_text()
+        vim.api.nvim_exec_autocmds("User", {
+            pattern = "IdleState",
+        })
     end
 end
 
@@ -100,7 +102,9 @@ local function user_typing()
         return
     end
     set_state(M.States.TYPING)
-    renderer.clear_text()
+    vim.api.nvim_exec_autocmds("User", {
+        pattern = "UserTypeing"
+    })
     local context_test = context_bulder.get_context_snapshot()
     if context_test == nil then
         return

@@ -1,16 +1,56 @@
 local M = {}
 
 local ns = vim.api.nvim_create_namespace("agent_response")
+
 local buf_state = {
     buf = nil,
     mark_id = nil,
     text = "",
 }
 
+vim.api.nvim_create_autocmd("User", {
+    pattern = "AgentResponse",
+    callback = function(event)
+        local response = event.data.response
+        M.show_agent_response(response)
+    end,
+})
+
+vim.api.nvim_create_autocmd("User", {
+    pattern = "IdleState",
+    callback = function()
+        M.clear_text()
+    end
+})
+
+vim.api.nvim_create_autocmd("User", {
+    pattern = "UserTypeing",
+    callback = function()
+        M.clear_text()
+    end
+})
+
+vim.api.nvim_create_autocmd("User", {
+    pattern = "AgentRequest",
+    callback = function()
+        M.clear_text()
+    end
+})
+
+vim.api.nvim_create_autocmd("User", {
+    pattern = "PluginDisabled",
+    callback = function()
+        M.clear_text()
+    end,
+})
+
 --- Shows the agent response as virtual text. Accumulates the text overtime for streamming and rerenders
---- the virtual text
+--- the virtual text. Should only ever show the text while in insert mode
 ---@param text string
 function M.show_agent_response(text)
+    if vim.fn.mode() ~= "i" then
+        return
+    end
     buf_state.buf = vim.api.nvim_get_current_buf()
     local row, col = unpack(vim.api.nvim_win_get_cursor(0))
     row = row - 1 -- extmarks are 0-based

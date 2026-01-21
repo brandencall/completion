@@ -13,11 +13,8 @@
                 [X] binary_expression
     - Determine when the suffix is being repeated and remove it.
     - Start working on a test suite to measure llm.
-    - LLM will respond with the suffix code as well sometimes. Need a way to detect that and not display.
-        - This needs to be done on the plugin side because we are streamming the content (I don't think that the cpp
-          agent code will be able to detect this).
     - Context building:
         - Currently `get_current_function_pos` only gets the inner most function (in case of nested functions). May want
           to get the outter most function in the future. Lua in many cases has many nested functions (callbacks)
     - BUG: The render got an invalid buffer id somehow. Probably not tracking buffers correctly
-    - BUG: Sometimes renders after exiting insert mode (Guess is the request is already in flight by the time we switch back)
+    [X] BUG: Sometimes renders after exiting insert mode (Guess is the request is already in flight by the time we switch back)
