@@ -8,25 +8,20 @@ local state_group = vim.api.nvim_create_augroup("CompletionStateGroup", { clear 
 local uv = vim.uv
 
 ---@alias State
----| -1  -- DISABLED
----| 0  -- ENABLED
----| 1  -- IDLE
----| 2  -- TYPING
----| 3  -- ELIGIBLE
----| 4  -- REQUESTING
----| 5  -- DISPLAYING
----| 6  -- SUSPENDING
+---| 0  -- DISABLED
+---| 1  -- ENABLED
+---| 2  -- IDLE
+---| 3  -- TYPING
+---| 4  -- ELIGIBLE
+---| 5  -- SUSPENDING
 M.States = {
-    DISABLED = -1,
-    ENABLED = 0,
-    IDLE = 1,
-    TYPING = 2,
-    ELIGIBLE = 3,
-    REQUESTING = 4,
-    DISPLAYING = 5,
-    SUSPENDING = 6
+    DISABLED = 0,
+    ENABLED = 1,
+    IDLE = 2,
+    TYPING = 3,
+    ELIGIBLE = 4,
+    SUSPENDING = 5
 }
-
 
 local current_state = M.States.DISABLED
 ---@diagnostic disable: undefined-field
