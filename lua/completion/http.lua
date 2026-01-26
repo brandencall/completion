@@ -1,6 +1,7 @@
 local Job = require("plenary.job")
 local debug = require("completion.debug")
 local json = vim.json
+local config = require("completion.config").get()
 
 local M = {}
 
@@ -24,7 +25,7 @@ vim.api.nvim_create_autocmd("User", {
     end,
 })
 
-local function stream_llm_post(url, body_table, on_chunk_callback, on_complete_callback)
+local function stream_llm_post(url, body_table, suffix, on_chunk_callback, on_complete_callback)
     local body_json = json.encode(body_table)
 
     local job = Job:new({
@@ -71,25 +72,23 @@ local function stream_llm_post(url, body_table, on_chunk_callback, on_complete_c
 end
 
 --- This function is responible for sending prompt requests to agent server.
---- TODO: Should add request configs to a config doc
 --- @param prompt_request PromptRequest
 function M.handle_completion(prompt_request)
-    local url =
-    "http://localhost:8080/infill"
+    local url = config.server.url .. config.server.endpoint
     local body = {
         input_prefix = prompt_request.prefix,
         input_suffix = prompt_request.suffix,
-        max_tokens = 32,
-        tempeture = 0.7,
-        stop = { "\n\n", "\n\n\n", "<fim_prefix>", "<fim_suffix>", "<fim_middle>", "```", "</" },
-        top_p = 0.9,
-        top_k = 40,
-        repeat_penalty = 1.1,
-        presence_penalty = 0.0,
-        frequency_penalty = 0.0,
+        max_tokens = config.max_tokens,
+        temperature = config.temperature,
+        stop = config.stop,
+        top_p = config.top_p,
+        top_k = config.top_k,
+        repeat_penalty = config.repeat_penalty,
+        presence_penalty = config.presence_penalty,
+        frequency_penalty = config.frequency_penalty,
         stream = true
     }
-    active_job = stream_llm_post(url, body,
+    active_job = stream_llm_post(url, body, prompt_request.suffix,
         function(payload)
             vim.schedule(function()
                 vim.api.nvim_exec_autocmds("User", {

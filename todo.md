@@ -11,7 +11,8 @@
             - Prompt when encountered (?):
                 [X] assignment_statement
                 [X] binary_expression
-    - Determine when the suffix is being repeated and remove it.
+    - Determine when the suffix is being repeated and stop processing the prompt.
+    - Does the llm return a confidence score per token?
     - Start working on a test suite to measure llm.
     - Context building:
         - Currently `get_current_function_pos` only gets the inner most function (in case of nested functions). May want
@@ -19,7 +20,8 @@
     - BUG: The render got an invalid buffer id somehow. Probably not tracking buffers correctly
     [X] BUG: Sometimes renders after exiting insert mode (Guess is the request is already in flight by the time we switch back)
     - Setup a way to do configuration in nvim configuration
-        - Configure LLM model + it's configuration
+        - LLM model 
+        [X] LLM parameters
         - Configure suspend time (?)
     - On startup, figure out a way to start up the LLM server
         - Need to checks on whether llama.cpp is installed, etc.
