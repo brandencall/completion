@@ -1,3 +1,4 @@
+local debug = require("completion.debug")
 local M = {}
 
 --- @class PromptRequest
@@ -10,7 +11,6 @@ function M.prompt_request(prefix_n, suffix_n)
     --- @type PromptRequest
     return {
         prefix = "<file>" .. file_name .. "</file>\n" .. prefix,
-        -- Bug with missing the last line of the function (`end` for lua)
         suffix = suffix,
     }
 end

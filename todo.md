@@ -11,6 +11,7 @@
             - Prompt when encountered (?):
                 [X] assignment_statement
                 [X] binary_expression
+        - C# integration
     - Determine when the suffix is being repeated and stop processing the prompt.
     - Does the llm return a confidence score per token?
     - Start working on a test suite to measure llm.

@@ -14,7 +14,6 @@ local uv = vim.uv
 ---| 4  -- ELIGIBLE
 ---| 5  -- SUSPENDED
 ---| 6  -- DISPLAYING
----| 7  -- ACCEPTED
 M.States = {
     DISABLED = 0,
     ENABLED = 1,
@@ -82,6 +81,9 @@ local function suspend(suspend_time)
 end
 
 local function user_typing()
+    vim.api.nvim_exec_autocmds("User", {
+        pattern = "UserTyping"
+    })
     local buftype = vim.api.nvim_get_option_value('buftype', { buf = 0 })
     if buftype ~= "" then
         return
@@ -89,9 +91,6 @@ local function user_typing()
     if M.get_state() == M.States.DISPLAYING then
         suspend(4000)
     end
-    vim.api.nvim_exec_autocmds("User", {
-        pattern = "UserTyping"
-    })
     local lang = lang_manager.get_active_lang(vim.api.nvim_get_current_buf())
     if not lang then
         return

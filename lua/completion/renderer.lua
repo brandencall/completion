@@ -1,3 +1,4 @@
+local d = require("completion.debug")
 local M = {}
 
 local ns = vim.api.nvim_create_namespace("agent_response")
@@ -64,6 +65,14 @@ function M.clear_text()
     buf_state.text = ""
 end
 
+local function add_formatted_newline(lines, col)
+    local spaces = ""
+    for i = 1, col do
+        spaces = spaces .. " "
+    end
+    table.insert(lines, spaces)
+end
+
 local function insert_agent_text()
     if not buf_state or buf_state.text == "" or not buf_state.mark_id then
         return "\t"
@@ -72,6 +81,9 @@ local function insert_agent_text()
         vim.api.nvim_buf_get_extmark_by_id(buf_state.buf, ns, buf_state.mark_id, {})
     )
     local lines = vim.split(buf_state.text, "\n", { plain = true })
+    if #lines == 1 then
+        add_formatted_newline(lines, col)
+    end
 
     vim.schedule(function()
         vim.api.nvim_buf_set_text(
