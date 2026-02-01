@@ -1,6 +1,5 @@
-local context_bulder = require("completion.context_builder")
---local renderer = require("completion.renderer")
---local debug = require("completion.debug")
+local prompt_builder = require("completion.prompt_builder")
+local lang_manager = require("completion.lang.lang_manager")
 
 local M = {}
 
@@ -75,26 +74,6 @@ function M.get_state()
     return current_state
 end
 
----@param context ContextSnapshot
-local function is_eligible(context)
-    if context.node_type == "if_statement"
-        or context.node_type == "while_statement"
-        or context.node_type == "for_statement"
-    then
-        if not context.err_node_present and
-            context.curr_row > context.node_start
-            and context.curr_row < context.node_end
-        then
-            return true
-        end
-    elseif context.node_type == "assignment_statement" or context.node_type == "binary_expression" then
-        return true
-    elseif context.node_type:match("function") and not context.err_node_present then
-        return true
-    end
-    return false
-end
-
 local function suspend(suspend_time)
     set_state(M.States.SUSPENDED)
     suspend_timer:start(suspend_time, 0, function()
@@ -113,14 +92,17 @@ local function user_typing()
     vim.api.nvim_exec_autocmds("User", {
         pattern = "UserTyping"
     })
-    local context = context_bulder.get_context_snapshot()
+    local lang = lang_manager.get_active_lang(vim.api.nvim_get_current_buf())
+    if not lang then
+        return
+    end
+    local context = lang.get_context_snapshot()
     if context == nil then
         return
     end
     eligible_timer:start(1000, 0, vim.schedule_wrap(function()
-        if is_eligible(context) and M.get_state() ~= M.States.SUSPENDED then
-            local prompt_request = context_bulder.prompt_request(context.func_node_start, context
-                .func_node_end)
+        if lang.is_eligible(context) and M.get_state() ~= M.States.SUSPENDED then
+            local prompt_request = prompt_builder.prompt_request(context.func_node_start, context.func_node_end)
             vim.api.nvim_exec_autocmds("User", {
                 pattern = "AgentRequest",
                 data = { request = prompt_request },

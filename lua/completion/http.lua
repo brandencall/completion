@@ -1,5 +1,4 @@
 local Job = require("plenary.job")
-local debug = require("completion.debug")
 local json = vim.json
 local config = require("completion.config").get()
 

@@ -5,7 +5,6 @@ local M = {}
 
 function M.setup(user_config)
     config.setup(user_config or {})
-    require("completion.context_builder")
     require("completion.renderer")
     require("completion.http")
 end
