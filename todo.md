@@ -1,5 +1,11 @@
 # Todo's:
     - Complete state tracking for the plugin to determine when to prompt the llm.
+        - Current prompting triggers (VERY BASIC PROMPTING TRIGGER):
+            - If current node is if_statement, for_statement and while_statement
+                - There is no error node present
+                - The current row is between the start of the statement and the end of the statement blocks
+            - If the current node is an assignment_statement or a binary_expression
+            - If the current node is a function and there is no error node present
         - Prompting on treesitter node types. CURRENTLY ONLY FOR LUA
             [X] Prompt when type is `%function%` and scope doesn't contain errs
             [X] If, while, for statements:

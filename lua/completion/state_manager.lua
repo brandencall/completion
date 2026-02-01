@@ -81,6 +81,9 @@ local function suspend(suspend_time)
 end
 
 local function user_typing()
+    if M.get_state() == M.States.DISABLED then
+        return
+    end
     vim.api.nvim_exec_autocmds("User", {
         pattern = "UserTyping"
     })

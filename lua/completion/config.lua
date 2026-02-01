@@ -1,8 +1,9 @@
 local M = {}
 
 local defaults = {
-    model = nil,
+    model = "Qwen/Qwen2.5-Coder-7B-Instruct-GGUF:Q4_K_M",
     server = {
+        startup_path = "/home/brabs/Applications/llama.cpp/build/bin/llama-server",
         url = "http://127.0.0.1:8080",
         endpoint = "/infill",
     },
