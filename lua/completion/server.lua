@@ -5,7 +5,10 @@ local M = {}
 M.job = nil
 
 function M.start(config)
-    if M.job and config.server.startup_path == nil then
+    if M.job and M.job:is_running() then
+        return
+    end
+    if config.server.startup_path == nil then
         return
     end
 
@@ -15,11 +18,8 @@ function M.start(config)
             "-hf",
             config.model,
         },
-        on_exit = function(_, code)
+        on_exit = function(_, _)
             M.job = nil
-            if code ~= 0 then
-                vim.notify("LLaMA server exited with code " .. code, vim.log.levels.WARN)
-            end
         end,
     })
 
@@ -27,14 +27,19 @@ function M.start(config)
 end
 
 function M.stop()
-    if not M.job then
+    if not M.job or not M.job.pid then
         return
     end
 
-    -- Try graceful shutdown first
-    pcall(function()
-        M.job:shutdown()
-    end)
+    local pid = M.job.pid
+
+    vim.loop.kill(pid, "sigterm")
+
+    vim.defer_fn(function()
+        pcall(function()
+            vim.loop.kill(pid, "sigkill")
+        end)
+    end, 200)
 
     M.job = nil
 end
