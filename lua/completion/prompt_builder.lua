@@ -1,4 +1,5 @@
-local debug = require("completion.debug")
+local d = require("completion.debug")
+
 local M = {}
 
 --- @class PromptRequest
@@ -19,7 +20,7 @@ end
 ---@param n number
 ---@return string prefix
 function M.text_before_cursor(n)
-    if n <= 0 then
+    if not n or n <= 0 then
         return ""
     end
     local cursor_pos = vim.api.nvim_win_get_cursor(0)
@@ -40,12 +41,13 @@ end
 ---@param n number
 ---@return string suffix
 function M.text_after_cursor(n)
-    if n <= 0 then
+    if not n or n <= 0 then
         return ""
     end
     local cursor_pos = vim.api.nvim_win_get_cursor(0)
     local buf_line_count = vim.api.nvim_buf_line_count(0)
     local start_row = math.min(cursor_pos[1], buf_line_count)
+    -- Need to add 1 to n becuase nvim_buf_get_lines is exclusive
     local suffix_table = vim.api.nvim_buf_get_lines(0, start_row, n + 1, false)
     local current_line = vim.api.nvim_get_current_line()
     local current_line_suffix = string.sub(current_line, cursor_pos[2] + 2, #current_line)

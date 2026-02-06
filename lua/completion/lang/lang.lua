@@ -1,4 +1,16 @@
-local lang = { }
+--- @class ContextSnapshot
+--- @field node_type string
+--- @field node_start integer
+--- @field node_end integer
+--- @field scope string
+--- @field curr_row integer
+--- @field err_node_present boolean
+--- @field func_node_start integer?
+--- @field func_node_end integer?
+--- @field curr_line_text string
+
+
+local lang = {}
 
 lang.required_methods = {
     "is_applicable",

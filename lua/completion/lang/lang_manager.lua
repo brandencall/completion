@@ -14,7 +14,6 @@ end
 function M.get_active_lang(bufnr)
     for _, lang in pairs(M.langs) do
         if lang.is_applicable(bufnr) then
-            print("HERE")
             return lang
         end
     end

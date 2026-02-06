@@ -1,5 +1,6 @@
 local prompt_builder = require("completion.prompt_builder")
 local lang_manager = require("completion.lang.lang_manager")
+local d = require("completion.debug")
 
 local M = {}
 
