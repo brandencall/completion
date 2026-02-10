@@ -27,6 +27,8 @@ vim.api.nvim_create_autocmd("User", {
 local function stream_llm_post(url, body_table, suffix, on_chunk_callback, on_complete_callback)
     local body_json = json.encode(body_table)
 
+    local full_response = ""
+
     local job = Job:new({
         command = "curl",
         args = {
@@ -49,11 +51,16 @@ local function stream_llm_post(url, body_table, suffix, on_chunk_callback, on_co
                 if ok and parsed.stop == true then
                     vim.schedule(function()
                         vim.api.nvim_exec_autocmds("User", {
-                            pattern = "PromptFinished"
+                            pattern = "PromptFinished",
+                            data = {
+                                suffix = suffix,
+                                full_response = full_response
+                            },
                         })
                     end)
                 elseif ok and parsed.content then
                     on_chunk_callback(parsed.content)
+                    full_response = full_response .. parsed.content
                 end
             end
         end,
@@ -92,7 +99,10 @@ function M.handle_completion(prompt_request)
             vim.schedule(function()
                 vim.api.nvim_exec_autocmds("User", {
                     pattern = "AgentResponse",
-                    data = { response = payload },
+                    data = {
+                        response = payload,
+                        suffix_table = prompt_request.suffix_table
+                    },
                 })
             end)
         end

@@ -5,86 +5,141 @@ local ns = vim.api.nvim_create_namespace("agent_response")
 
 local buf_state = {
     buf = nil,
-    mark_id = nil,
+    anchor_mark_id = nil,
     text = "",
+    insert_plan = {}
 }
-
---- Shows the agent response as virtual text. Accumulates the text overtime for streamming and rerenders
---- the virtual text. Should only ever show the text while in insert mode
----@param text string
-function M.show_agent_response(text)
-    if vim.fn.mode() ~= "i" then
-        return
-    end
-    buf_state.buf = vim.api.nvim_get_current_buf()
-    local row, col = unpack(vim.api.nvim_win_get_cursor(0))
-    row = row - 1 -- extmarks are 0-based
-    buf_state.text = buf_state.text .. text
-
-    vim.api.nvim_buf_clear_namespace(buf_state.buf, ns, 0, -1)
-
-    local lines = {}
-    local firstLine = {}
-    for line in buf_state.text:gmatch("[^\r\n]+") do
-        if #firstLine == 0 then
-            table.insert(firstLine, {
-                { line, "Comment" }
-            })
-        else
-            table.insert(lines, {
-                { line, "Comment" }
-            })
-        end
-    end
-    buf_state.mark_id = vim.api.nvim_buf_set_extmark(
-        buf_state.buf,
-        ns,
-        row,
-        col,
-        {
-            virt_text = firstLine[1],
-            virt_text_pos = "inline",
-            hl_mode = "combine"
-        }
-    )
-    buf_state.mark_id = vim.api.nvim_buf_set_extmark(
-        buf_state.buf,
-        ns,
-        row,
-        col,
-        {
-            virt_lines = lines,
-        }
-    )
-end
 
 function M.clear_text()
     if not buf_state.buf then return end
     vim.api.nvim_buf_clear_namespace(buf_state.buf, ns, 0, -1)
-    buf_state.mark_id = nil
+    buf_state.anchor_mark_id = nil
     buf_state.text = ""
+    buf_state.insert_plan = nil
 end
 
-local function add_formatted_newline(lines, col)
-    local spaces = ""
-    for i = 1, col do
-        spaces = spaces .. " "
-    end
-    table.insert(lines, spaces)
-end
-
-local function insert_agent_text()
-    if not buf_state or buf_state.text == "" or not buf_state.mark_id then
-        return "\t"
-    end
-    local row, col = unpack(
-        vim.api.nvim_buf_get_extmark_by_id(buf_state.buf, ns, buf_state.mark_id, {})
+local function create_anchor_extmark(row, col)
+    buf_state.anchor_mark_id = vim.api.nvim_buf_set_extmark(
+        buf_state.buf,
+        ns,
+        row,
+        col,
+        { right_gravity = false }
     )
-    local lines = vim.split(buf_state.text, "\n", { plain = true })
-    if #lines == 1 then
-        add_formatted_newline(lines, col)
-    end
+end
 
+---@class mark
+---@field firstLine table
+---@field lines table
+---@field col integer
+
+---@param row integer
+---@param col integer
+---@param suffix table
+---@return table<integer, mark> marks Mapping of row to mark
+local function create_extmarks_for_render(row, col, suffix)
+    local suffix_match_idx = 1
+    local current_row = row
+    local marks = {}
+
+    for line in buf_state.text:gmatch("[^\r\n]+") do
+        if line == suffix[suffix_match_idx] then
+            suffix_match_idx = suffix_match_idx + 1
+            current_row = current_row + 1
+            marks[current_row] = {
+                firstLine = {},
+                lines = {},
+                col = vim.fn.strlen(vim.fn.getline(current_row + 1)),
+            }
+            goto continue
+        end
+        if not marks[row] then
+            marks[row] = {
+                firstLine = {},
+                lines = {},
+                col = col,
+            }
+            table.insert(marks[row].firstLine, {
+                { line, "Comment" }
+            })
+        else
+            table.insert(marks[current_row].lines, {
+                { line, "Comment" }
+            })
+        end
+        if not buf_state.insert_plan[current_row] then
+            buf_state.insert_plan[current_row] = {}
+        end
+
+        table.insert(buf_state.insert_plan[current_row], line)
+        ::continue::
+    end
+    return marks
+end
+
+---@param marks table<integer, mark> Mapping of row to mark
+local function set_extmarks_for_render(marks)
+    for mark_row, mark in pairs(marks) do
+        if mark.firstLine then
+            vim.api.nvim_buf_set_extmark(
+                buf_state.buf,
+                ns,
+                mark_row,
+                mark.col,
+                {
+                    virt_text = mark.firstLine[1],
+                    virt_text_pos = "inline",
+                    hl_mode = "combine"
+                }
+            )
+        end
+        vim.api.nvim_buf_set_extmark(
+            buf_state.buf,
+            ns,
+            mark_row,
+            mark.col,
+            {
+                virt_lines = mark.lines,
+            }
+        )
+    end
+end
+
+--- Shows the agent response as virtual text. Accumulates the text overtime for streamming and rerenders
+--- the virtual text. Should only ever show the text while in insert mode
+---@param text string
+---@param suffix table
+function M.show_agent_response(text, suffix)
+    if vim.fn.mode() ~= "i" then
+        return
+    end
+    buf_state.buf = vim.api.nvim_get_current_buf()
+    buf_state.text = buf_state.text .. text
+    buf_state.insert_plan = {}
+
+    vim.api.nvim_buf_clear_namespace(buf_state.buf, ns, 0, -1)
+
+    local row, col = unpack(vim.api.nvim_win_get_cursor(0))
+    row = row - 1 -- extmarks are 0-based
+
+    create_anchor_extmark(row, col)
+    local marks = create_extmarks_for_render(row, col, suffix)
+    set_extmarks_for_render(marks)
+end
+
+---@param row integer
+---@param col integer
+---@param lines table
+---@return integer, integer (last_row_set last_col_set) returns the last row that was set and the column
+local function set_text_first_row(row, col, lines)
+    local last_row_set = -1
+    local last_col_set = -1
+
+    local start_row = row
+    local line_count = #lines
+
+    local start_col = col
+    local last_line = lines[#lines]
     vim.schedule(function()
         vim.api.nvim_buf_set_text(
             buf_state.buf,
@@ -95,20 +150,78 @@ local function insert_agent_text()
             lines
         )
     end)
-    local new_row = row + #lines - 1
-    local new_col
-    if #lines == 1 then
-        new_col = col + #lines[1]
+    last_row_set = start_row + line_count
+    --row_idx = row_idx + 1
+
+    if line_count == 1 then
+        last_col_set = start_col + vim.fn.strlen(last_line)
     else
-        new_col = #lines[#lines]
+        last_col_set = vim.fn.strlen(last_line)
+    end
+    return last_row_set, last_col_set
+end
+
+---@param row integer
+---@param lines table
+---@return integer, integer (last_row_set last_col_set) returns the last row that was set and the column
+local function set_text(row, lines)
+    local last_row_set = -1
+    local last_col_set = -1
+
+    local start_row = row + 1
+    local line_count = #lines + 1
+
+    local last_line = lines[#lines]
+    vim.schedule(function()
+        table.insert(lines, "")
+        vim.api.nvim_buf_set_text(
+            buf_state.buf,
+            row + 1,
+            0,
+            row + 1,
+            0,
+            lines
+        )
+        table.remove(lines)
+    end)
+    last_row_set = start_row + line_count - 1
+    last_col_set = vim.fn.strlen(last_line)
+
+    return last_row_set, last_col_set
+end
+
+local function insert_agent_text()
+    if not buf_state.buf or not buf_state.insert_plan then
+        return ""
+    end
+
+    local _, col = unpack(
+        vim.api.nvim_buf_get_extmark_by_id(buf_state.buf, ns, buf_state.anchor_mark_id, {})
+    )
+
+    vim.api.nvim_buf_call(buf_state.buf, function()
+        vim.cmd("undojoin")
+    end)
+
+    local last_row_set = -1
+    local last_col_set = -1
+    local row_idx = 1
+    for row, lines in pairs(buf_state.insert_plan) do
+        if #lines > 0 then
+            if row_idx == 1 then
+                last_row_set, last_col_set = set_text_first_row(row, col, lines)
+                row_idx = row_idx + 1
+            else
+                last_row_set, last_col_set = set_text(row, lines)
+            end
+        end
     end
 
     vim.schedule(function()
-        vim.api.nvim_win_set_cursor(0, { new_row + 1, new_col })
+        vim.api.nvim_win_set_cursor(0, { last_row_set, last_col_set })
     end)
 
-    M.clear_text()
-    return ""
+    M.clear_text();
 end
 
 vim.keymap.set('i', '<Tab>', insert_agent_text, { expr = true, silent = true })
@@ -117,7 +230,8 @@ vim.api.nvim_create_autocmd("User", {
     pattern = "AgentResponse",
     callback = function(event)
         local response = event.data.response
-        M.show_agent_response(response)
+        local suffix = event.data.suffix_table
+        M.show_agent_response(response, suffix)
     end,
 })
 

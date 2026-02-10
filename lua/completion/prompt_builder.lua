@@ -2,17 +2,29 @@ local d = require("completion.debug")
 
 local M = {}
 
+local function split_lines(text)
+    local lines = {}
+    for line in text:gmatch("[^\r\n]+") do
+        table.insert(lines, line)
+    end
+    if lines[#lines] == "" then table.remove(lines) end
+    return lines
+end
+
 --- @class PromptRequest
 --- @field prefix string
 --- @field suffix string
+--- @field suffix_table table
 function M.prompt_request(prefix_n, suffix_n)
     local file_name = M.get_current_file_name()
     local prefix = M.text_before_cursor(prefix_n)
     local suffix = M.text_after_cursor(suffix_n)
+    local suffix_table = split_lines(suffix)
     --- @type PromptRequest
     return {
         prefix = "<file>" .. file_name .. "</file>\n" .. prefix,
         suffix = suffix,
+        suffix_table = suffix_table
     }
 end
 

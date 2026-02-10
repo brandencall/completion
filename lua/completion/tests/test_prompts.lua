@@ -15,7 +15,7 @@ function M.sum_upto(n)
 end
 
 -- EXPECTED OUTPUT:
---         return true
+-- return true
 --     end
 --
 --     return false
@@ -28,7 +28,7 @@ function M.contains_zero(values)
 end
 
 -- EXPECTED OUTPUT:
---             result[#result + 1] = values[i]
+-- result[#result + 1] = values[i]
 --         end
 --     end
 --
