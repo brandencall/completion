@@ -37,18 +37,20 @@ end
 ---@param col integer
 ---@param suffix table
 ---@return table<integer, mark> marks Mapping of row to mark
-local function create_extmarks_for_render(row, col, suffix)
+function M.create_extmarks_for_render(row, col, suffix)
     local suffix_match_idx = 1
     local render_row = row
     local actual_row = row
     local marks = {}
+    local rendered_chunk_sum = 0
 
     for line in buf_state.text:gmatch("[^\r\n]+") do
         if line == suffix[suffix_match_idx] then
             local prev_render_chunk_len = #marks[render_row].firstLine + #marks[render_row].lines
+            rendered_chunk_sum = rendered_chunk_sum + prev_render_chunk_len
             -- The actual row is the current render_row + the previous chunk that was rendered
             -- plus the offset of the amount of matching suffix (offset by 1)
-            actual_row = render_row + prev_render_chunk_len + suffix_match_idx - 1
+            actual_row = render_row + rendered_chunk_sum + suffix_match_idx - 1
             suffix_match_idx = suffix_match_idx + 1
             render_row = render_row + 1
             marks[render_row] = {
@@ -128,7 +130,7 @@ function M.show_agent_response(text, suffix)
     row = row - 1 -- extmarks are 0-based
 
     create_anchor_extmark(row, col)
-    local marks = create_extmarks_for_render(row, col, suffix)
+    local marks = M.create_extmarks_for_render(row, col, suffix)
     set_extmarks_for_render(marks)
 end
 
@@ -136,7 +138,7 @@ end
 ---@param col integer
 ---@param lines table
 ---@return integer, integer (last_row_set last_col_set) returns the last row that was set and the column
-local function set_text_first_row(row, col, lines)
+function M.set_text_first_row(row, col, lines)
     local last_row_set = -1
     local last_col_set = -1
 
@@ -176,10 +178,23 @@ local function set_text_first_row(row, col, lines)
     return last_row_set, last_col_set
 end
 
+--- Inserts N blank lines at the end of the current buffer.
+--- @param n integer The number of blank lines to insert.
+local function insert_blank_lines_end_of_buffer(n)
+    local lines_to_insert = {}
+    -- Create a table with 'n' empty strings, each representing a new line.
+    for _ = 1, n do
+        table.insert(lines_to_insert, "")
+    end
+
+    -- Use 0 for the current buffer, -1 as both the start and end line to append at the end of the buffer.
+    vim.api.nvim_buf_set_lines(buf_state.buf, -1, -1, false, lines_to_insert)
+end
+
 ---@param row integer
 ---@param lines table
 ---@return integer, integer (last_row_set last_col_set) returns the last row that was set and the column
-local function set_text(row, lines)
+function M.set_text(row, lines)
     local last_row_set = -1
     local last_col_set = -1
 
@@ -187,13 +202,19 @@ local function set_text(row, lines)
     local line_count = #lines + 1
 
     local last_line = lines[#lines]
+    local buffer_count = vim.api.nvim_buf_line_count(buf_state.buf)
+
+    if start_row >= buffer_count then
+        insert_blank_lines_end_of_buffer(start_row - buffer_count)
+        start_row = start_row - 1
+    end
     vim.schedule(function()
         table.insert(lines, "")
         vim.api.nvim_buf_set_text(
             buf_state.buf,
-            row + 1,
+            start_row,
             0,
-            row + 1,
+            start_row,
             0,
             lines
         )
@@ -205,9 +226,9 @@ local function set_text(row, lines)
     return last_row_set, last_col_set
 end
 
-local function insert_agent_text()
+function M.insert_agent_text()
     if not buf_state.buf or not buf_state.insert_plan then
-        return ""
+        return
     end
 
     local _, col = unpack(
@@ -231,10 +252,9 @@ local function insert_agent_text()
         local lines = buf_state.insert_plan[row]
         if #lines > 0 then
             if i == 1 then
-                last_row_set, last_col_set = set_text_first_row(row, col, lines)
+                last_row_set, last_col_set = M.set_text_first_row(row, col, lines)
             else
-                -- MIGHT NEED SOME SORT OF OFFSET IF THE FIRST LINE IS MULTIPLE LINES LONG!
-                last_row_set, last_col_set = set_text(row, lines)
+                last_row_set, last_col_set = M.set_text(row, lines)
             end
         end
     end
@@ -246,7 +266,7 @@ local function insert_agent_text()
     M.clear_text();
 end
 
-vim.keymap.set('i', '<Tab>', insert_agent_text, { expr = true, silent = true })
+vim.keymap.set('i', '<Tab>', M.insert_agent_text, { expr = true, silent = true })
 
 vim.api.nvim_create_autocmd("User", {
     pattern = "AgentResponse",

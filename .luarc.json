@@ -1,0 +1,24 @@
+{
+  "runtime": {
+    "version": "LuaJIT",
+    "pathStrict": true
+  },
+  "workspace": {
+    "library": [
+      "$VIMRUNTIME",
+      "${3rd}/luv/library",
+      "${workspaceFolder}/plenary.nvim",
+      "${workspaceFolder}"
+    ],
+    "checkThirdParty": false
+  },
+  "diagnostics": {
+    "globals": [
+      "vim",
+      "describe",
+      "it",
+      "before_each",
+      "after_each"
+    ]
+  }
+}
