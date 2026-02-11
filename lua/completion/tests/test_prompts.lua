@@ -9,7 +9,6 @@ local M = {}
 function M.sum_upto(n)
     local sum = 0
     local i = 1
-
     while i <= n do
     end
 end
@@ -68,7 +67,6 @@ local function find_first_nil(values)
 
     while i <= #values do
         if values[i] == nil then
-
         end
     end
 end

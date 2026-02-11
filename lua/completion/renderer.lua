@@ -39,17 +39,22 @@ end
 ---@return table<integer, mark> marks Mapping of row to mark
 local function create_extmarks_for_render(row, col, suffix)
     local suffix_match_idx = 1
-    local current_row = row
+    local render_row = row
+    local actual_row = row
     local marks = {}
 
     for line in buf_state.text:gmatch("[^\r\n]+") do
         if line == suffix[suffix_match_idx] then
+            local prev_render_chunk_len = #marks[render_row].firstLine + #marks[render_row].lines
+            -- The actual row is the current render_row + the previous chunk that was rendered
+            -- plus the offset of the amount of matching suffix (offset by 1)
+            actual_row = render_row + prev_render_chunk_len + suffix_match_idx - 1
             suffix_match_idx = suffix_match_idx + 1
-            current_row = current_row + 1
-            marks[current_row] = {
+            render_row = render_row + 1
+            marks[render_row] = {
                 firstLine = {},
                 lines = {},
-                col = vim.fn.strlen(vim.fn.getline(current_row + 1)),
+                col = vim.fn.strlen(vim.fn.getline(render_row + 1)),
             }
             goto continue
         end
@@ -63,15 +68,15 @@ local function create_extmarks_for_render(row, col, suffix)
                 { line, "Comment" }
             })
         else
-            table.insert(marks[current_row].lines, {
+            table.insert(marks[render_row].lines, {
                 { line, "Comment" }
             })
         end
-        if not buf_state.insert_plan[current_row] then
-            buf_state.insert_plan[current_row] = {}
+        if not buf_state.insert_plan[actual_row] then
+            buf_state.insert_plan[actual_row] = {}
         end
 
-        table.insert(buf_state.insert_plan[current_row], line)
+        table.insert(buf_state.insert_plan[actual_row], line)
         ::continue::
     end
     return marks
@@ -138,6 +143,17 @@ local function set_text_first_row(row, col, lines)
     local start_row = row
     local line_count = #lines
 
+    local line = vim.api.nvim_buf_get_lines(
+        buf_state.buf,
+        row,
+        row + 1,
+        false
+    )[1] or ""
+
+    if col > #line then
+        col = 0
+    end
+
     local start_col = col
     local last_line = lines[#lines]
     vim.schedule(function()
@@ -151,7 +167,6 @@ local function set_text_first_row(row, col, lines)
         )
     end)
     last_row_set = start_row + line_count
-    --row_idx = row_idx + 1
 
     if line_count == 1 then
         last_col_set = start_col + vim.fn.strlen(last_line)
@@ -199,19 +214,26 @@ local function insert_agent_text()
         vim.api.nvim_buf_get_extmark_by_id(buf_state.buf, ns, buf_state.anchor_mark_id, {})
     )
 
+    local rows = {}
+    for r, _ in pairs(buf_state.insert_plan) do
+        table.insert(rows, r)
+    end
+    table.sort(rows, function(a, b) return a < b end) -- bottom-up
+
     vim.api.nvim_buf_call(buf_state.buf, function()
         vim.cmd("undojoin")
     end)
 
     local last_row_set = -1
     local last_col_set = -1
-    local row_idx = 1
-    for row, lines in pairs(buf_state.insert_plan) do
+
+    for i, row in ipairs(rows) do
+        local lines = buf_state.insert_plan[row]
         if #lines > 0 then
-            if row_idx == 1 then
+            if i == 1 then
                 last_row_set, last_col_set = set_text_first_row(row, col, lines)
-                row_idx = row_idx + 1
             else
+                -- MIGHT NEED SOME SORT OF OFFSET IF THE FIRST LINE IS MULTIPLE LINES LONG!
                 last_row_set, last_col_set = set_text(row, lines)
             end
         end
