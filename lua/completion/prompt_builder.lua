@@ -1,5 +1,3 @@
-local d = require("completion.debug")
-
 local M = {}
 
 local function split_lines(text)

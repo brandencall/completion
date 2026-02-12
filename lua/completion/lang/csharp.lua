@@ -1,5 +1,4 @@
 local ts = require("completion.lang.ts_util")
-local d = require("completion.debug")
 
 local M = {}
 

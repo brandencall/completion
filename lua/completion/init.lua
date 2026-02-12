@@ -6,8 +6,9 @@ local M = {}
 
 function M.setup(user_config)
     config.setup(user_config or {})
-    require("completion.renderer")
     require("completion.http")
+    require("completion.agent_response.render")
+    require("completion.agent_response.display_response")
     local opts = config.get()
     server.start(opts)
     state.enable()

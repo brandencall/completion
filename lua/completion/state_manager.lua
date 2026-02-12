@@ -1,6 +1,5 @@
 local prompt_builder = require("completion.prompt_builder")
 local lang_manager = require("completion.lang.lang_manager")
-local d = require("completion.debug")
 
 local M = {}
 
@@ -23,6 +22,14 @@ M.States = {
     ELIGIBLE = 4,
     SUSPENDED = 5,
     DISPLAYING = 6
+}
+
+M.BufferState = {
+    buf = nil,
+    anchor_mark_id = nil,
+    text = "",
+    insert_plan = {},
+    ns = vim.api.nvim_create_namespace("agent_response")
 }
 
 local current_state = M.States.DISABLED
@@ -135,11 +142,12 @@ vim.api.nvim_create_autocmd("TextChangedI", {
     desc = "Trigger callback when text changes in insert mode"
 })
 
-local cmp = require("cmp")
+local ok, cmp = pcall(require, "cmp")
 
--- Event called when lsp autocomplete finishes
-cmp.event:on("confirm_done", function()
-    user_typing()
-end)
+if ok then
+    cmp.event:on("confirm_done", function()
+        user_typing()
+    end)
+end
 
 return M
