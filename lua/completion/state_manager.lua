@@ -120,7 +120,6 @@ local function user_typing()
     if not eligible_timer or not context or not context.category then
         return
     end
-    debug("debug: " .. context.category .. '\n')
     eligible_timer:start(1000, 0, vim.schedule_wrap(function()
         if eligibile.is_eligible(context) and M.get_state() ~= M.States.SUSPENDED then
             local prompt_request = prompt_builder.prompt_request(context.func_node_start, context.func_node_end)
