@@ -76,6 +76,9 @@ end
 
 local function suspend(suspend_time)
     set_state(M.States.SUSPENDED)
+    if not suspend_timer then
+        return
+    end
     suspend_timer:start(suspend_time, 0, function()
         set_state(M.States.IDLE)
     end)
@@ -101,6 +104,9 @@ local function user_typing()
     end
     local context = lang.get_context_snapshot()
     if context == nil then
+        return
+    end
+    if not eligible_timer then
         return
     end
     eligible_timer:start(1000, 0, vim.schedule_wrap(function()
