@@ -1,5 +1,6 @@
 local prompt_builder = require("completion.prompt_builder")
 local lang_manager = require("completion.lang.lang_manager")
+local eligibile = require("completion.eligibility")
 
 local M = {}
 
@@ -91,6 +92,12 @@ local function suspend(suspend_time)
     end)
 end
 
+local function debug(text)
+    local file = assert(io.open("test.txt", "a"))
+    file:write(text)
+    file:close()
+end
+
 local function user_typing()
     if M.get_state() == M.States.DISABLED then
         return
@@ -110,14 +117,12 @@ local function user_typing()
         return
     end
     local context = lang.get_context_snapshot()
-    if context == nil then
+    if not eligible_timer or not context or not context.category then
         return
     end
-    if not eligible_timer then
-        return
-    end
+    debug("debug: " .. context.category .. '\n')
     eligible_timer:start(1000, 0, vim.schedule_wrap(function()
-        if lang.is_eligible(context) and M.get_state() ~= M.States.SUSPENDED then
+        if eligibile.is_eligible(context) and M.get_state() ~= M.States.SUSPENDED then
             local prompt_request = prompt_builder.prompt_request(context.func_node_start, context.func_node_end)
             vim.api.nvim_exec_autocmds("User", {
                 pattern = "AgentRequest",

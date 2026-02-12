@@ -1,29 +1,26 @@
 local ts = require("completion.lang.ts_util")
+local categories = require("completion.categories")
+local lang = require("completion.lang.lang")
 
 local M = {}
 
+local lua_map = {
+    block = categories.types.BLOCK,
+    if_statement = categories.types.CONTROL_FLOW,
+    while_statement = categories.types.LOOP,
+    for_statement = categories.types.LOOP,
+    function_declaration = categories.types.FUNCTION,
+    local_function = categories.types.FUNCTION,
+    assignment_statement = categories.types.DECLARATION,
+    binary_expression = categories.types.EXPRESSION,
+    function_call = categories.types.EXPRESSION,
+    arguments = categories.types.EXPRESSION,
+    field_expression = categories.types.MEMBER_ACCESS,
+    table_constructor = categories.types.EXPRESSION,
+}
+
 function M.is_applicable(bufnr)
     return vim.bo[bufnr].filetype == "lua"
-end
-
----@param context ContextSnapshot
-function M.is_eligible(context)
-    if context.node_type == "if_statement"
-        or context.node_type == "while_statement"
-        or context.node_type == "for_statement"
-    then
-        if not context.err_node_present and
-            context.curr_row > context.node_start
-            and context.curr_row < context.node_end
-        then
-            return true
-        end
-    elseif context.node_type == "assignment_statement" or context.node_type == "binary_expression" then
-        return true
-    elseif context.node_type:match("function") and not context.err_node_present then
-        return true
-    end
-    return false
 end
 
 --- @return ContextSnapshot?
@@ -38,6 +35,7 @@ function M.get_context_snapshot()
     --- @type ContextSnapshot
     return {
         node_type = curr_node:type(),
+        category = lang.get_category(curr_node:type(), lua_map),
         node_start = curr_node:start(),
         node_end = curr_node:end_(),
         scope = not scope and "" or scope:type(),

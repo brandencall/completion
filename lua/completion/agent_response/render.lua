@@ -29,10 +29,10 @@ function M.create_extmarks_for_render(row, col, suffix)
 
     for line in state.BufferState.text:gmatch("[^\r\n]+") do
         if line == suffix[suffix_match_idx] then
+            -- Nil check needed for marks!
             local prev_render_chunk_len = #marks[render_row].firstLine + #marks[render_row].lines
             rendered_chunk_sum = rendered_chunk_sum + prev_render_chunk_len
             -- The actual row is the current render_row + the previous chunk that was rendered
-            -- plus the offset of the amount of matching suffix (offset by 1)
             actual_row = render_row + rendered_chunk_sum
             suffix_match_idx = suffix_match_idx + 1
             render_row = render_row + 1

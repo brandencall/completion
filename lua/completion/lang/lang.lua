@@ -14,9 +14,12 @@ local lang = {}
 
 lang.required_methods = {
     "is_applicable",
-    "is_eligible",
     "get_context_snapshot"
 }
+
+function lang.get_category(node_type, node_map)
+    return node_map[node_type]
+end
 
 function lang.validate(l, name)
     for _, method in ipairs(lang.required_methods) do

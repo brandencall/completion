@@ -1,32 +1,28 @@
 local ts = require("completion.lang.ts_util")
+local categories = require("completion.categories")
+local lang = require("completion.lang.lang")
 
 local M = {}
 
+local csharp_map = {
+    block = categories.types.BLOCK,
+    if_statement = categories.types.CONTROL_FLOW,
+    while_statement = categories.types.LOOP,
+    for_statement = categories.types.LOOP,
+    foreach_statement = categories.types.LOOP,
+    class_declaration = categories.types.CLASS,
+    method_declaration = categories.types.FUNCTION,
+    constructor_declaration = categories.types.FUNCTION,
+    property_declaration = categories.types.DECLARATION,
+    variable_declarator = categories.types.DECLARATION,
+    binary_expression = categories.types.EXPRESSION,
+    invocation_expression = categories.types.EXPRESSION,
+    argument_list = categories.types.EXPRESSION,
+    member_access_expression = categories.types.MEMBER_ACCESS,
+}
+
 function M.is_applicable(bufnr)
     return vim.bo[bufnr].filetype == "cs"
-end
-
--- Could add: member_access_expression (even when error node present)
--- Could also do if current node == initializer_expression and ends with '.' then prompt (Ex: Console.)
----@param context ContextSnapshot
-function M.is_eligible(context)
-    if context.node_type == "block"
-        or context.node_type == "if_statement"
-        or context.node_type == "while_statement"
-        or context.node_type == "for_statement"
-    then
-        if not context.err_node_present and
-            context.curr_row > context.node_start
-            and context.curr_row < context.node_end
-        then
-            return true
-        end
-    elseif context.node_type == "variable_declarator" or context.node_type == "binary_expression" then
-        return true
-    elseif context.node_type == "member_access_expression" then
-        return true
-    end
-    return false
 end
 
 --- @return ContextSnapshot?
@@ -41,6 +37,7 @@ function M.get_context_snapshot()
     --- @type ContextSnapshot
     return {
         node_type = curr_node:type(),
+        category = lang.get_category(curr_node:type(), csharp_map),
         node_start = curr_node:start(),
         node_end = curr_node:end_(),
         scope = not scope and "" or scope:type(),
