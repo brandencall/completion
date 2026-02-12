@@ -309,20 +309,20 @@ describe("renderer", function()
     --  end <-- og suffix
     --  print('test3') <-- generated
     --  print('test4') <-- generated
-    --  print('not generated') <-- og suffix 
+    --  print('not generated') <-- og suffix
     --  print('test5') <-- generated
     --  print('test6') <-- generated
     --end
     --
     --]]
-    it("handles multiple multiline blocks", function()
+    it("handles multiple multiline blocks with buffer overflow", function()
         vim.api.nvim_buf_set_lines(0, 0, -1, false, {
             "function test()",
             "  if test then",
             "",
             "  end",
             "  print('not generated')",
-            "end"
+            "end",
         })
 
         vim.api.nvim_win_set_cursor(0, { 3, 0 })
@@ -360,6 +360,108 @@ describe("renderer", function()
             "  print('test5')",
             "  print('test6')",
             "end"
+        }, lines)
+    end)
+
+    it("handles multiple multiline blocks but buffer isn't overflown", function()
+        vim.api.nvim_buf_set_lines(0, 0, -1, false, {
+            "function test()",
+            "  if test then",
+            "",
+            "  end",
+            "  print('not generated')",
+            "end",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+        })
+
+        vim.api.nvim_win_set_cursor(0, { 3, 0 })
+
+        local generated = [[
+    print('test1')
+    print('test2')
+  end
+  print('test3')
+  print('test4')
+  print('not generated')
+  print('test5')
+  print('test6')]]
+
+        local suffix = {
+            "  end",
+            "  print('not generated')",
+            "end"
+        }
+
+        renderer.show_agent_response(generated, suffix)
+        renderer.insert_agent_text()
+
+        local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+
+        assert.are.same({
+            "function test()",
+            "  if test then",
+            "    print('test1')",
+            "    print('test2')",
+            "  end",
+            "  print('test3')",
+            "  print('test4')",
+            "  print('not generated')",
+            "  print('test5')",
+            "  print('test6')",
+            "end",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+        }, lines)
+    end)
+
+    it("handles realistic multiline block, buffer isn't overflown", function()
+        vim.api.nvim_buf_set_lines(0, 0, -1, false, {
+            "        if values[i] == 0 then",
+            "",
+            "        end",
+            "    end",
+            "end",
+            "",
+            "",
+            ""
+        })
+        vim.api.nvim_win_set_cursor(0, { 2, 0 })
+
+        local generated = [[
+            return true
+        end
+    end
+    return false]]
+
+        local suffix = {
+            "        end",
+            "    end",
+            "end"
+        }
+        renderer.show_agent_response(generated, suffix)
+        renderer.insert_agent_text()
+
+        local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+
+        assert.are.same({
+            "        if values[i] == 0 then",
+            "            return true",
+            "        end",
+            "    end",
+            "    return false",
+            "end",
+            "",
+            "",
+            ""
         }, lines)
     end)
 end)

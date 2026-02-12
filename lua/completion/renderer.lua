@@ -50,7 +50,7 @@ function M.create_extmarks_for_render(row, col, suffix)
             rendered_chunk_sum = rendered_chunk_sum + prev_render_chunk_len
             -- The actual row is the current render_row + the previous chunk that was rendered
             -- plus the offset of the amount of matching suffix (offset by 1)
-            actual_row = render_row + rendered_chunk_sum + suffix_match_idx - 1
+            actual_row = render_row + rendered_chunk_sum
             suffix_match_idx = suffix_match_idx + 1
             render_row = render_row + 1
             marks[render_row] = {
@@ -264,9 +264,18 @@ function M.insert_agent_text()
     end)
 
     M.clear_text();
+    return ""
 end
 
-vim.keymap.set('i', '<Tab>', M.insert_agent_text, { expr = true, silent = true })
+--vim.keymap.set('i', '<Tab>', M.insert_agent_text, { expr = true, silent = true })
+
+vim.keymap.set('i', '<Tab>', function()
+    if buf_state.text ~= "" then
+        M.insert_agent_text()
+        return ""
+    end
+    return "<Tab>"
+end, { expr = true, silent = true })
 
 vim.api.nvim_create_autocmd("User", {
     pattern = "AgentResponse",
