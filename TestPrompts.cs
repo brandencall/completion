@@ -1,7 +1,7 @@
+using System.Text;
 
 public static class TestPrompts
 {
-
     public static int SumUpTo(int n)
     {
         int sum = 0;

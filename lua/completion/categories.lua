@@ -5,6 +5,7 @@ M.types = {
     LOOP = "loop",
     FUNCTION = "function",
     CLASS = "class",
+    SCOPE_BODY = "scope_body",
     ASSIGNMENT = "assignment",
     DECLARATION = "declaration",
     EXPRESSION = "expression",
@@ -24,6 +25,7 @@ M.groups = {
         M.types.FUNCTION,
         M.types.CLASS,
         M.types.BLOCK,
+        M.types.SCOPE_BODY,
     },
 
     EXECUTABLE = {

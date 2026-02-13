@@ -122,7 +122,7 @@ local function user_typing()
     end
     eligible_timer:start(1000, 0, vim.schedule_wrap(function()
         if eligibile.is_eligible(context) and M.get_state() ~= M.States.SUSPENDED then
-            local prompt_request = prompt_builder.prompt_request(context.func_node_start, context.func_node_end)
+            local prompt_request = prompt_builder.prompt_request(context.context_start, context.context_end)
             vim.api.nvim_exec_autocmds("User", {
                 pattern = "AgentRequest",
                 data = { request = prompt_request },

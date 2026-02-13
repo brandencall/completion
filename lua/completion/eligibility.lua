@@ -29,6 +29,10 @@ function M.is_eligible(context)
         return true
     end
 
+    if categories.types.COMMENT then
+        return false
+    end
+
     -- Functions (Lua required error check)
     if category == categories.types.FUNCTION then
         return not error_node_present(context)

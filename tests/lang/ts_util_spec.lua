@@ -1,20 +1,5 @@
 local ts_utils = require("completion.lang.ts_util")
-vim.opt.runtimepath:append(
-    vim.fn.stdpath("data") .. "/lazy/nvim-treesitter"
-)
-
-local function has_csharp_parser()
-    local data = vim.fn.stdpath("data")
-
-    -- Add lazy treesitter path if it exists
-    local ts_path = data .. "/lazy/nvim-treesitter"
-    if vim.loop.fs_stat(ts_path) then
-        vim.opt.runtimepath:append(ts_path)
-    end
-
-    local parsers = vim.api.nvim_get_runtime_file("parser/c_sharp.so", false)
-    return #parsers > 0
-end
+local helper = require("tests.helper")
 
 describe("treesitter (lua)", function()
     local function parse_lua(lines)
@@ -133,20 +118,8 @@ describe("treesitter (lua)", function()
     end)
 end)
 
-if has_csharp_parser() then
+if helper.has_csharp_parser() then
     describe("treesitter (c_sharp)", function()
-        local function parse_csharp(lines)
-            local buf = vim.api.nvim_create_buf(false, true)
-            vim.api.nvim_set_current_buf(buf)
-            vim.bo[buf].filetype = "cs"
-
-            vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
-
-            local parser = vim.treesitter.get_parser(buf, "c_sharp")
-            local tree = parser:parse()[1]
-            return buf, tree:root()
-        end
-
         local function find_identifier(root, buf, name)
             local query = vim.treesitter.query.parse("c_sharp", [[
               (identifier) @id
@@ -160,7 +133,7 @@ if has_csharp_parser() then
             end
         end
         it("get_function_node(): gets the current function in the class", function()
-            local buf, root = parse_csharp({
+            local buf, root = helper.parse_csharp({
                 "using System;",
                 "",
                 "public class TestClass",
@@ -187,7 +160,7 @@ if has_csharp_parser() then
             assert.equals("method_declaration", func_node:type())
         end)
         it("get_current_scope(): returns the enclosing block scope", function()
-            local buf, root = parse_csharp({
+            local buf, root = helper.parse_csharp({
                 "public class Test {",
                 "  public void Method() {",
                 "    int x = 10;",
@@ -206,7 +179,7 @@ if has_csharp_parser() then
         end)
 
         it("get_current_scope(): returns nearest block when nested", function()
-            local buf, root = parse_csharp({
+            local buf, root = helper.parse_csharp({
                 "public class Test {",
                 "  public void Method() {",
                 "    if (true) {",
@@ -227,7 +200,7 @@ if has_csharp_parser() then
         end)
 
         it("get_current_scope(): returns nil if no scope found", function()
-            local buf, root = parse_csharp({
+            local buf, root = helper.parse_csharp({
                 "int z = 5;", -- top-level statement (C# 9+ style)
             })
 
@@ -240,7 +213,7 @@ if has_csharp_parser() then
 
 
         it("contains_err_node(): returns false for valid syntax tree", function()
-            local _, root = parse_csharp({
+            local _, root = helper.parse_csharp({
                 "public class Test {",
                 "  public void Method() {",
                 "    int a = 1;",
@@ -252,7 +225,7 @@ if has_csharp_parser() then
         end)
 
         it("contains_err_node(): returns true when syntax error exists", function()
-            local _, root = parse_csharp({
+            local _, root = helper.parse_csharp({
                 "public class Test {",
                 "  public void Method() {",
                 "    int a = ;", -- invalid syntax

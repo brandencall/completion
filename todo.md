@@ -32,3 +32,5 @@
         - Configure suspend time (?)
     - On startup, figure out a way to start up the LLM server
         - Need to checks on whether llama.cpp is installed, etc.
+
+    -BUG: clear prompt after accepting an LSP suggestion

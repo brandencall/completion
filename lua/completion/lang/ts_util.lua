@@ -11,6 +11,17 @@ function M.get_function_node(current_node, func_node)
     return result
 end
 
+---@param current_node TSNode?
+---@param target_node string
+---@return TSNode?
+function M.get_node(current_node, target_node)
+    local result = current_node
+    while result and not result:type():match(target_node) do
+        result = result:parent()
+    end
+    return result
+end
+
 --- Returns the starting row and ending row of the current function.
 --- Note: Offset it by 1 (since nvim is 1 based and treesitter is 0 based)
 --- To be able to get the function declaration, we don't offset the start row by 1
@@ -49,6 +60,15 @@ function M.contains_err_node(node)
         end
     end
     return false
+end
+
+---@return _ TSNode?
+function M.get_node_at_cursor(buf, parser_type)
+    local parser = vim.treesitter.get_parser(buf, parser_type)
+    local tree = parser:parse()[1]
+    local root = tree:root()
+    local row, col = unpack(vim.api.nvim_win_get_cursor(0))
+    return root:named_descendant_for_range(row - 1, col, row - 1, col)
 end
 
 return M

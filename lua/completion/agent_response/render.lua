@@ -103,6 +103,8 @@ function M.show_agent_response(text, suffix)
     if vim.fn.mode() ~= "i" then
         return
     end
+    print("suffix: ")
+    print(table.concat(suffix, "\n"))
     state.BufferState.buf = vim.api.nvim_get_current_buf()
     state.BufferState.text = state.BufferState.text .. text
     state.BufferState.insert_plan = {}
