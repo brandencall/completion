@@ -6,13 +6,12 @@ if helper.has_csharp_parser() then
         it("get_context_snapshot()", function()
             helper.parse_csharp({
                 "public class Test {",
-                "//",
                 "  public void Method() {",
-                "    int x = 10;",
+                "",
                 "  }",
                 "}",
             })
-            vim.api.nvim_win_set_cursor(0, { 2, 0 })
+            vim.api.nvim_win_set_cursor(0, { 3, 0 })
 
             local snapshot = lang.get_context_snapshot()
             print(vim.inspect(snapshot))

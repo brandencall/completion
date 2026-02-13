@@ -1,5 +1,22 @@
 local M = {}
 
+
+---@alias CategoryType
+---| "control_flow"
+---| "loop"
+---| "function"
+---| "class"
+---| "scope_body"
+---| "assignment"
+---| "declaration"
+---| "expression"
+---| "call"
+---| "argument_list"
+---| "block"
+---| "comment"
+---| "top_level"
+---| "member_access"
+
 M.types = {
     CONTROL_FLOW = "control_flow",
     LOOP = "loop",

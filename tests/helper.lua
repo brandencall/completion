@@ -16,6 +16,18 @@ function M.mock_schedule_sync()
     end
 end
 
+function M.parse_lua(lines)
+    local buf = vim.api.nvim_create_buf(false, true)
+    vim.api.nvim_set_current_buf(buf)
+    vim.bo[buf].filetype = "lua"
+
+    vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+
+    local parser = vim.treesitter.get_parser(buf, "lua")
+    local tree = parser:parse()[1]
+    return buf, tree:root()
+end
+
 function M.has_csharp_parser()
     local data = vim.fn.stdpath("data")
 

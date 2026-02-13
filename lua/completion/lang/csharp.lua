@@ -4,6 +4,7 @@ local lang = require("completion.lang.lang")
 
 local M = {}
 
+---@type table<string, CategoryType>
 local csharp_map = {
     block = categories.types.BLOCK,
     if_statement = categories.types.CONTROL_FLOW,
@@ -19,9 +20,6 @@ local csharp_map = {
     invocation_expression = categories.types.EXPRESSION,
     argument_list = categories.types.EXPRESSION,
     member_access_expression = categories.types.MEMBER_ACCESS,
-    declaration_list = categories.types.SCOPE_BODY,
-    compilation_unit = categories.types.TOP_LEVEL,
-    comment = categories.types.COMMENT,
 }
 
 function M.is_applicable(bufnr)
@@ -48,29 +46,32 @@ end
 
 --- @return ContextSnapshot?
 function M.get_context_snapshot()
-    local curr_node = ts.get_node_at_cursor(0, "c_sharp")
-    if not curr_node then
-        return nil
-    end
-    local row, _ = unpack(vim.api.nvim_win_get_cursor(0))
-    local context_start, context_end = get_context_range(row, curr_node)
-    if not context_start and not context_end then
-        return nil
-    end
-    local scope = ts.get_current_scope(curr_node)
-    --- @type ContextSnapshot
-    return {
-        node_type = curr_node:type(),
-        category = lang.get_category(curr_node:type(), csharp_map),
-        node_start = curr_node:start(),
-        node_end = curr_node:end_(),
-        scope = not scope and "" or scope:type(),
-        curr_row = row - 1,
-        err_node_present = ts.contains_err_node(scope),
-        curr_line_text = vim.api.nvim_get_current_line(),
-        context_start = context_start,
-        constext_end = context_end,
-    }
+    return lang.get_context_snapshot("c_sharp", get_context_range, csharp_map)
+    --local curr_node = ts.get_node_at_cursor(0, "c_sharp")
+    --if not curr_node then
+    --    return nil
+    --end
+    --local row, _ = unpack(vim.api.nvim_win_get_cursor(0))
+    --local context_start, context_end = get_context_range(row, curr_node)
+    --if not context_start and not context_end then
+    --    return nil
+    --end
+    --local scope = ts.get_current_scope(curr_node)
+    ----- @type ContextSnapshot
+    --return {
+    --    node_type = curr_node:type(),
+    --    category = lang.get_category(curr_node:type(), csharp_map),
+    --    node_start = curr_node:start(),
+    --    node_end = curr_node:end_(),
+    --    scope = not scope and "" or scope:type(),
+    --    curr_row = row - 1,
+    --    err_node_present = ts.contains_err_node(scope),
+    --    curr_line_text = vim.api.nvim_get_current_line(),
+    --    ---@diagnostic disable-next-line: assign-type-mismatch
+    --    context_start = context_start,
+    --    ---@diagnostic disable-next-line: assign-type-mismatch
+    --    context_end = context_end,
+    --}
 end
 
 return M
