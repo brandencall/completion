@@ -1,4 +1,3 @@
-local ts = require("completion.lang.ts_util")
 local categories = require("completion.categories")
 local lang = require("completion.lang.lang")
 
@@ -20,32 +19,21 @@ local lua_map = {
     table_constructor = categories.types.EXPRESSION,
     chunk = categories.types.TOP_LEVEL,
 }
+---@type NodeConfig
+local node_config = {
+    full_scoped_nodes = {
+        func_node = "function_declaration",
+    },
+    file_node = "chunk"
+}
 
 function M.is_applicable(bufnr)
     return vim.bo[bufnr].filetype == "lua"
 end
 
-local function get_context_range(row, curr_node)
-    local context_start = nil
-    local context_end = nil
-    local func_node = ts.get_node(curr_node, "function_declaration")
-    if not func_node then
-        -- chunk includes the whole file
-        local file_node = ts.get_node(curr_node, "chunk")
-        if file_node then
-            context_start, _, _, _ = file_node:range()
-            -- stop at the current row so we don't actually load the whole file
-            context_end = row
-        end
-    else
-        context_start, _, context_end, _ = func_node:range()
-    end
-    return context_start, context_end
-end
-
 --- @return ContextSnapshot?
 function M.get_context_snapshot()
-    return lang.get_context_snapshot("lua", get_context_range, lua_map)
+    return lang.get_context_snapshot("lua", lua_map, node_config)
 end
 
 return M

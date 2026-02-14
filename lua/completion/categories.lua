@@ -1,10 +1,9 @@
 local M = {}
 
-
 ---@alias CategoryType
 ---| "control_flow"
 ---| "loop"
----| "function"
+---| "func"
 ---| "class"
 ---| "scope_body"
 ---| "assignment"
@@ -20,8 +19,10 @@ local M = {}
 M.types = {
     CONTROL_FLOW = "control_flow",
     LOOP = "loop",
-    FUNCTION = "function",
+    FUNCTION = "func",
     CLASS = "class",
+    INTERFACE = "interface",
+    STRUCT = "struct",
     SCOPE_BODY = "scope_body",
     ASSIGNMENT = "assignment",
     DECLARATION = "declaration",
@@ -31,7 +32,7 @@ M.types = {
     BLOCK = "block",
     COMMENT = "comment",
     TOP_LEVEL = "top_level",
-    MEMBER_ACCESS = "member_access"
+    MEMBER_ACCESS = "member_access",
 }
 
 -- Optional grouped sets (helps eligibility logic stay clean)
@@ -53,6 +54,20 @@ M.groups = {
         M.types.MEMBER_ACCESS
     }
 }
+
+M.scope = {
+    PARTIAL = "partial",
+    FULL = "full",
+}
+
+M.type_scope = {
+    top_level = M.scope.PARTIAL,
+    class = M.scope.PARTIAL,
+    interface = M.scope.FULL,
+    struct = M.scope.FULL,
+    func = M.scope.FULL,
+}
+
 local function to_set(list)
     local set = {}
     for _, v in ipairs(list) do
