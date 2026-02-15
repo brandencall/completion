@@ -19,13 +19,13 @@ local lua_map = {
     table_constructor = categories.types.EXPRESSION,
     chunk = categories.types.TOP_LEVEL,
 }
----@type NodeConfig
-local node_config = {
-    full_scoped_nodes = {
-        func_node = "function_declaration",
-    },
-    file_node = "chunk"
-}
+-----@type NodeConfig
+--local node_config = {
+--    full_scoped_nodes = {
+--        func_node = "function_declaration",
+--    },
+--    file_node = "chunk"
+--}
 
 function M.is_applicable(bufnr)
     return vim.bo[bufnr].filetype == "lua"
@@ -33,7 +33,7 @@ end
 
 --- @return ContextSnapshot?
 function M.get_context_snapshot()
-    return lang.get_context_snapshot("lua", lua_map, node_config)
+    return lang.get_context_snapshot("lua", lua_map)
 end
 
 return M

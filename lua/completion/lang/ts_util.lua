@@ -11,31 +11,6 @@ function M.get_function_node(current_node, func_node)
     return result
 end
 
----@param current_node TSNode?
----@param target_node string
----@return TSNode?
-function M.get_node(current_node, target_node)
-    local result = current_node
-    while result and not result:type():match(target_node) do
-        result = result:parent()
-    end
-    return result
-end
-
----@param current_node TSNode
----@param scope_nodes ScopedNodes
----@return TSNode?
-function M.try_get_scope_node(current_node, scope_nodes)
-    local result = nil
-    for _, target_node in pairs(scope_nodes) do
-        result = M.get_node(current_node, target_node)
-        if result ~= nil then
-            return result
-        end
-    end
-    return result
-end
-
 --- Returns the starting row and ending row of the current function.
 --- Note: Offset it by 1 (since nvim is 1 based and treesitter is 0 based)
 --- To be able to get the function declaration, we don't offset the start row by 1

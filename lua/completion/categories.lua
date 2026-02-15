@@ -5,6 +5,9 @@ local M = {}
 ---| "loop"
 ---| "func"
 ---| "class"
+---| "interface"
+---| "struct"
+---| "enum"
 ---| "scope_body"
 ---| "assignment"
 ---| "declaration"
@@ -23,6 +26,7 @@ M.types = {
     CLASS = "class",
     INTERFACE = "interface",
     STRUCT = "struct",
+    ENUM = "enum",
     SCOPE_BODY = "scope_body",
     ASSIGNMENT = "assignment",
     DECLARATION = "declaration",
@@ -55,17 +59,18 @@ M.groups = {
     }
 }
 
-M.scope = {
-    PARTIAL = "partial",
-    FULL = "full",
-}
+M.scope_rules = {
+    FULL = {
+        M.types.FUNCTION,
+        M.types.INTERFACE,
+        M.types.STRUCT,
+        M.types.ENUM
+    },
 
-M.type_scope = {
-    top_level = M.scope.PARTIAL,
-    class = M.scope.PARTIAL,
-    interface = M.scope.FULL,
-    struct = M.scope.FULL,
-    func = M.scope.FULL,
+    PARTIAL = {
+        M.types.CLASS,
+        M.types.TOP_LEVEL,
+    }
 }
 
 local function to_set(list)
@@ -80,6 +85,11 @@ end
 M.sets = {
     BLOCK_LIKE = to_set(M.groups.BLOCK_LIKE),
     EXECUTABLE = to_set(M.groups.EXECUTABLE),
+}
+
+M.scope_sets = {
+    FULL = to_set(M.scope_rules.FULL),
+    PARTIAL = to_set(M.scope_rules.PARTIAL),
 }
 
 return M

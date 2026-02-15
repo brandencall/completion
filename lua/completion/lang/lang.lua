@@ -1,4 +1,6 @@
 local ts = require("completion.lang.ts_util")
+local categories = require("completion.categories")
+
 --- @class ContextSnapshot
 --- @field node TSNode
 --- @field node_type string
@@ -11,13 +13,10 @@ local ts = require("completion.lang.ts_util")
 --- @field context_start integer
 --- @field context_end integer
 
----@class ScopedNodes
----@field func_node string
----@field interface_node? string
----
 ---@class NodeConfig
----@field full_scope_catagories ScopedNodes
----@field file_node string
+---@field full_scope_categories string[]
+---@field file_scope_category string
+
 
 local lang = {}
 
@@ -25,10 +24,6 @@ lang.required_methods = {
     "is_applicable",
     "get_context_snapshot"
 }
-
-function lang.get_category(node_type, node_map)
-    return node_map[node_type]
-end
 
 function lang.validate(l, name)
     for _, method in ipairs(lang.required_methods) do
@@ -39,39 +34,41 @@ function lang.validate(l, name)
 end
 
 ---@param row integer
----@param curr_node TSNode
----@param node_config NodeConfig
----@return integer | nil context_start
----@return integer | nil context_end
-local function get_context_range(row, curr_node, node_config)
-    local context_start, context_end = nil, nil
-    local scoped_node = ts.try_get_scope_node(curr_node, node_config.full_scoped_nodes)
-    if not scoped_node then
-        local file_node = ts.get_node(curr_node, node_config.file_node)
-        if file_node then
-            context_start, _, _, _ = file_node:range()
-            -- stop at the current row so we don't actually load the whole file
-            context_end = row
+---@param curr_node TSNode?
+---@param node_map table<string, CategoryType>
+---@return integer | nil
+---@return integer | nil
+local function get_context_range(row, curr_node, node_map)
+    local node = curr_node
+    while node do
+        local category = node_map[node:type()]
+        if category then
+            if categories.scope_sets.FULL[category] then
+                local start_row, _, end_row, _ = node:range()
+                return start_row, end_row
+            end
+            if categories.scope_sets.PARTIAL[category] then
+                local start_row, _, _, _ = node:range()
+                return start_row, row
+            end
         end
-    else
-        context_start, _, context_end, _ = scoped_node:range()
-    end
-    return context_start, context_end
-end
 
----@alias GetContextRange fun(row: integer, curr_node: TSNode): integer, integer
+        node = node:parent()
+    end
+
+    return nil, nil
+end
 
 ---@param ts_lang string The language that treesitter defines for it
 ---@param node_map table<string, CategoryType>
----@param node_config NodeConfig
 ---@return _ ContextSnapshot
-function lang.get_context_snapshot(ts_lang, node_map, node_config)
+function lang.get_context_snapshot(ts_lang, node_map)
     local curr_node = ts.get_node_at_cursor(0, ts_lang)
     if not curr_node then
         return nil
     end
     local row, _ = unpack(vim.api.nvim_win_get_cursor(0))
-    local context_start, context_end = get_context_range(row, curr_node, node_config)
+    local context_start, context_end = get_context_range(row, curr_node, node_map)
     if not context_start and not context_end then
         return nil
     end
@@ -80,7 +77,7 @@ function lang.get_context_snapshot(ts_lang, node_map, node_config)
     return {
         node = curr_node,
         node_type = curr_node:type(),
-        category = lang.get_category(curr_node:type(), node_map),
+        category = node_map[curr_node:type()],
         node_start = curr_node:start(),
         node_end = curr_node:end_(),
         scope = not scope and "" or scope:type(),

@@ -12,7 +12,7 @@ if helper.has_csharp_parser() then
         end)
         it("testing fixtures", function()
             -- place cursor inside method body
-            vim.api.nvim_win_set_cursor(0, { 18, 12 })
+            vim.api.nvim_win_set_cursor(0, { 11, 9 })
 
             local context = lang.get_context_snapshot()
             print(vim.inspect(context))
