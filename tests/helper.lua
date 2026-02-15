@@ -16,6 +16,13 @@ function M.mock_schedule_sync()
     end
 end
 
+function M.goto_marker(text)
+    local row = vim.fn.search(text)
+    assert.is_true(row > 0, "Marker not found: " .. text)
+    vim.api.nvim_win_set_cursor(0, { row, 8 })
+    return row
+end
+
 function M.parse_lua(lines)
     local buf = vim.api.nvim_create_buf(false, true)
     vim.api.nvim_set_current_buf(buf)

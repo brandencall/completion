@@ -1,13 +1,6 @@
 local lang = require("completion.lang.csharp")
 local helper = require("tests.helper")
 
-local function goto_marker(text)
-    local row = vim.fn.search(text)
-    assert.is_true(row > 0, "Marker not found: " .. text)
-    vim.api.nvim_win_set_cursor(0, { row, 8 })
-    return row
-end
-
 if helper.has_csharp_parser() then
     describe("get_context_snapshot() (csharp)", function()
         before_each(function()
@@ -19,7 +12,7 @@ if helper.has_csharp_parser() then
         end)
         it("returns FULL context for method", function()
             -- place cursor inside method body
-            local row = goto_marker("return a + b + _base")
+            local row = helper.goto_marker("return a + b + _base")
 
             local snapshot = lang.get_context_snapshot()
             assert(snapshot)
@@ -33,7 +26,7 @@ if helper.has_csharp_parser() then
         end)
 
         it("returns PARTIAL context for class", function()
-            local _ = goto_marker("private readonly int _base")
+            local _ = helper.goto_marker("private readonly int _base")
 
             local snapshot = lang.get_context_snapshot()
             assert(snapshot)
@@ -45,7 +38,7 @@ if helper.has_csharp_parser() then
             assert.is_true(snapshot.context_end > snapshot.curr_row)
         end)
         it("returns FULL context for enum", function()
-            local _ = goto_marker("Unknown")
+            local _ = helper.goto_marker("Unknown")
 
             local snapshot = lang.get_context_snapshot()
             assert(snapshot)
@@ -57,7 +50,7 @@ if helper.has_csharp_parser() then
         end)
 
         it("returns FULL context for struct", function()
-            local _ = goto_marker("public double Distance")
+            local _ = helper.goto_marker("public double Distance")
 
             local snapshot = lang.get_context_snapshot()
             assert(snapshot)
@@ -68,7 +61,7 @@ if helper.has_csharp_parser() then
             assert.equals(21, snapshot.context_end)
         end)
         it("returns FULL context for interface", function()
-            local _ = goto_marker("int Add(int a, int b)")
+            local _ = helper.goto_marker("int Add(int a, int b)")
 
             local snapshot = lang.get_context_snapshot()
             assert(snapshot)
@@ -79,11 +72,23 @@ if helper.has_csharp_parser() then
             assert.equals(26, snapshot.context_end)
         end)
 
-        it("returns nil when no node at cursor", function()
+        it("returns comment context at top of file", function()
+            -- cursor at first line (comment)
             vim.api.nvim_win_set_cursor(0, { 1, 0 })
 
             local snapshot = lang.get_context_snapshot()
-            assert.is_nil(snapshot)
+            assert(snapshot)
+
+            assert.equals("comment", snapshot.category)
+            assert.equals("top_level", snapshot.scope_set_category)
+
+            assert.equals(0, snapshot.curr_row)
+            assert.equals(false, snapshot.err_node_present)
+
+            assert.equals(0, snapshot.context_start)
+            assert.equals(1, snapshot.context_end)
+
+            assert.equals("comment", snapshot.node:type())
         end)
     end)
 else
