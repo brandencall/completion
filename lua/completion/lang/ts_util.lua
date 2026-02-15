@@ -26,6 +26,7 @@ function M.get_current_function_pos(current_node, func_node)
     end
 end
 
+-- Probably need to update this so that it isn't hardcoded with "block" and "function"
 ---@param current_node TSNode?
 function M.get_current_scope(current_node)
     local scope = current_node

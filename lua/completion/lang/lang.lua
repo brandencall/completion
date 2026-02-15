@@ -3,13 +3,10 @@ local categories = require("completion.categories")
 
 --- @class ContextSnapshot
 --- @field node TSNode
---- @field node_type string
---- @field node_start integer
---- @field node_end integer
---- @field scope string
+--- @field category CategoryType
+--- @field scope_set_category CategoryType
 --- @field curr_row integer
 --- @field err_node_present boolean
---- @field curr_line_text string
 --- @field context_start integer
 --- @field context_end integer
 
@@ -38,6 +35,7 @@ end
 ---@param node_map table<string, CategoryType>
 ---@return integer | nil
 ---@return integer | nil
+---@return CategoryType | nil
 local function get_context_range(row, curr_node, node_map)
     local node = curr_node
     while node do
@@ -45,18 +43,18 @@ local function get_context_range(row, curr_node, node_map)
         if category then
             if categories.scope_sets.FULL[category] then
                 local start_row, _, end_row, _ = node:range()
-                return start_row, end_row
+                return start_row, end_row, category
             end
             if categories.scope_sets.PARTIAL[category] then
                 local start_row, _, _, _ = node:range()
-                return start_row, row
+                return start_row, row, category
             end
         end
 
         node = node:parent()
     end
 
-    return nil, nil
+    return nil, nil, nil
 end
 
 ---@param ts_lang string The language that treesitter defines for it
@@ -68,22 +66,19 @@ function lang.get_context_snapshot(ts_lang, node_map)
         return nil
     end
     local row, _ = unpack(vim.api.nvim_win_get_cursor(0))
-    local context_start, context_end = get_context_range(row, curr_node, node_map)
-    if not context_start and not context_end then
+    local context_start, context_end, scope_set_category = get_context_range(row, curr_node, node_map)
+    if not context_start and not context_end and not scope_set_category then
         return nil
     end
     local scope = ts.get_current_scope(curr_node)
     --- @type ContextSnapshot
     return {
         node = curr_node,
-        node_type = curr_node:type(),
         category = node_map[curr_node:type()],
-        node_start = curr_node:start(),
-        node_end = curr_node:end_(),
-        scope = not scope and "" or scope:type(),
+        ---@diagnostic disable-next-line: assign-type-mismatch
+        scope_set_category = scope_set_category,
         curr_row = row - 1,
         err_node_present = ts.contains_err_node(scope),
-        curr_line_text = vim.api.nvim_get_current_line(),
         ---@diagnostic disable-next-line: assign-type-mismatch
         context_start = context_start,
         ---@diagnostic disable-next-line: assign-type-mismatch

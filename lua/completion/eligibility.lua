@@ -6,8 +6,8 @@ local function error_node_present(context)
 end
 
 local function inside_current_node(context)
-    return context.curr_row > context.node_start
-        and context.curr_row < context.node_end
+    return context.curr_row > context.node:start()
+        and context.curr_row < context.node:end_()
 end
 
 function M.is_eligible(context)

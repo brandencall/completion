@@ -92,12 +92,6 @@ local function suspend(suspend_time)
     end)
 end
 
-local function debug(text)
-    local file = assert(io.open("test.txt", "a"))
-    file:write(text)
-    file:close()
-end
-
 local function user_typing()
     if M.get_state() == M.States.DISABLED then
         return

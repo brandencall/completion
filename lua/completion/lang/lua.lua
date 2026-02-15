@@ -18,14 +18,8 @@ local lua_map = {
     field_expression = categories.types.MEMBER_ACCESS,
     table_constructor = categories.types.EXPRESSION,
     chunk = categories.types.TOP_LEVEL,
+    comment = categories.types.COMMENT,
 }
------@type NodeConfig
---local node_config = {
---    full_scoped_nodes = {
---        func_node = "function_declaration",
---    },
---    file_node = "chunk"
---}
 
 function M.is_applicable(bufnr)
     return vim.bo[bufnr].filetype == "lua"

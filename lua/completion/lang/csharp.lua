@@ -23,6 +23,7 @@ local csharp_map = {
     interface_declaration    = categories.types.INTERFACE,
     struct_declaration       = categories.types.STRUCT,
     enum_declaration         = categories.types.ENUM,
+    comment                  = categories.types.COMMENT
 }
 
 function M.is_applicable(bufnr)
