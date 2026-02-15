@@ -38,23 +38,28 @@ end
 ---@return CategoryType | nil
 local function get_context_range(row, curr_node, node_map)
     local node = curr_node
+    local start_row, end_row, category = nil, nil, nil
     while node do
-        local category = node_map[node:type()]
-        if category then
-            if categories.scope_sets.FULL[category] then
-                local start_row, _, end_row, _ = node:range()
+        local cur_category = node_map[node:type()]
+        if cur_category then
+            if categories.scope_sets.FULL[cur_category] and cur_category == "func" then
+                start_row, _, end_row, _ = node:range()
+                category = cur_category
+            elseif categories.scope_sets.FULL[cur_category] then
+                start_row, _, end_row, _ = node:range()
+                category = cur_category
                 return start_row, end_row, category
             end
-            if categories.scope_sets.PARTIAL[category] then
-                local start_row, _, _, _ = node:range()
+            if categories.scope_sets.PARTIAL[cur_category] and not start_row and not end_row then
+                start_row, _, _, _ = node:range()
+                category = cur_category
                 return start_row, row, category
             end
         end
 
         node = node:parent()
     end
-
-    return nil, nil, nil
+    return start_row, end_row, category
 end
 
 ---@param ts_lang string The language that treesitter defines for it

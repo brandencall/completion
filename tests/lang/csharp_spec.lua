@@ -33,7 +33,7 @@ if helper.has_csharp_parser() then
         end)
 
         it("returns PARTIAL context for class", function()
-            local row = goto_marker("private readonly int _base")
+            local _ = goto_marker("private readonly int _base")
 
             local snapshot = lang.get_context_snapshot()
             assert(snapshot)
@@ -45,7 +45,7 @@ if helper.has_csharp_parser() then
             assert.is_true(snapshot.context_end > snapshot.curr_row)
         end)
         it("returns FULL context for enum", function()
-            local row = goto_marker("Unknown")
+            local _ = goto_marker("Unknown")
 
             local snapshot = lang.get_context_snapshot()
             assert(snapshot)
@@ -57,9 +57,7 @@ if helper.has_csharp_parser() then
         end)
 
         it("returns FULL context for struct", function()
-            -- For the below goto_marker it is a lambda function. May need to figure out how to handle this situation
-            --local row = goto_marker("public double Distance")
-            local row = goto_marker("public double X")
+            local _ = goto_marker("public double Distance")
 
             local snapshot = lang.get_context_snapshot()
             assert(snapshot)
@@ -70,10 +68,7 @@ if helper.has_csharp_parser() then
             assert.equals(21, snapshot.context_end)
         end)
         it("returns FULL context for interface", function()
-            -- For the below goto_marker, it is saying that it is a function. So just placing empty line below function
-            -- definition to to get the correct snapshot category
-            -- local row = goto_marker("int Add(int a, int b)")
-            vim.api.nvim_win_set_cursor(0, { 27, 8 })
+            local _ = goto_marker("int Add(int a, int b)")
 
             local snapshot = lang.get_context_snapshot()
             assert(snapshot)
