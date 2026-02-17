@@ -129,7 +129,14 @@ namespace Demo
             }
 
             var person = new Person("Alice", 30);
-            Console.WriteLine($"{person.Name} is {person.Age}");
+            object value = Console.WriteLine($"{person.Name} is {person.Age}");
+        }
+    }
+    class Test
+    {
+        void M()
+        {
+            int x = 5 +
         }
     }
 }

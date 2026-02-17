@@ -90,6 +90,54 @@ if helper.has_csharp_parser() then
 
             assert.equals("comment", snapshot.node:type())
         end)
+
+        it("handles incomplete method body while typing", function()
+            local _ = helper.parse_csharp({
+                "public class Test {",
+                "  public void Method() {",
+                "    int x = 10",
+                "",
+            })
+
+            -- cursor at incomplete line
+            vim.api.nvim_win_set_cursor(0, { 3, 14 })
+
+            local snapshot = lang.get_context_snapshot()
+            assert(snapshot)
+
+            assert.is_nil(snapshot.category)
+            assert.equals("top_level", snapshot.scope_set_category)
+        end)
+        it("handles partial if statement", function()
+            local buf = helper.parse_csharp({
+                "public class Test {",
+                "  public void Method() {",
+                "    if (",
+                "  }",
+                "}",
+            })
+
+            vim.api.nvim_win_set_cursor(0, { 3, 8 })
+
+            local snapshot = lang.get_context_snapshot()
+            assert(snapshot)
+
+            assert.equals(1, snapshot.context_start)
+            assert.equals(3, snapshot.context_end)
+            assert.equals("func", snapshot.scope_set_category)
+            assert.is_true(snapshot.err_node_present)
+        end)
+        it("handles incomplete expression assignment", function()
+            local _ = helper.goto_marker("int x = 5 +")
+
+            local snapshot = lang.get_context_snapshot()
+            assert(snapshot)
+            print(vim.inspect(snapshot))
+            print(snapshot.node:type())
+
+            assert.equals("func", snapshot.scope_set_category)
+            assert.is_true(snapshot.err_node_present)
+        end)
     end)
 else
     describe("treesitter (csharp)", function()
