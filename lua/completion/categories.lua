@@ -9,15 +9,10 @@ local M = {}
 ---| "struct"
 ---| "enum"
 ---| "scope_body"
----| "assignment"
----| "declaration"
----| "expression"
----| "call"
----| "argument_list"
 ---| "block"
 ---| "comment"
 ---| "top_level"
----| "member_access"
+---| "string"
 
 M.types = {
     CONTROL_FLOW = "control_flow",
@@ -28,15 +23,9 @@ M.types = {
     STRUCT = "struct",
     ENUM = "enum",
     SCOPE_BODY = "scope_body",
-    ASSIGNMENT = "assignment",
-    DECLARATION = "declaration",
-    EXPRESSION = "expression",
-    CALL = "call",
-    ARGUMENT_LIST = "argument_list",
     BLOCK = "block",
     COMMENT = "comment",
     TOP_LEVEL = "top_level",
-    MEMBER_ACCESS = "member_access",
     STRING = "string"
 }
 
@@ -51,13 +40,13 @@ M.groups = {
         M.types.SCOPE_BODY,
     },
 
-    EXECUTABLE = {
-        M.types.ASSIGNMENT,
-        M.types.EXPRESSION,
-        M.types.CALL,
-        M.types.DECLARATION,
-        M.types.MEMBER_ACCESS
-    }
+    --EXECUTABLE = {
+    --    M.types.ASSIGNMENT,
+    --    M.types.EXPRESSION,
+    --    M.types.CALL,
+    --    M.types.DECLARATION,
+    --    M.types.MEMBER_ACCESS
+    --}
 }
 
 M.scope_rules = {
@@ -85,7 +74,7 @@ end
 -- Precompute sets for fast lookup
 M.sets = {
     BLOCK_LIKE = to_set(M.groups.BLOCK_LIKE),
-    EXECUTABLE = to_set(M.groups.EXECUTABLE),
+    --EXECUTABLE = to_set(M.groups.EXECUTABLE),
 }
 
 M.scope_sets = {

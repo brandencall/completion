@@ -15,6 +15,10 @@ function M.is_eligible(context)
         return false
     end
 
+    if context.is_trigger then
+        return true
+    end
+
     local category = context.category
     -- Block-like structures (if, loops, block, class, etc.)
     if categories.sets.BLOCK_LIKE[category] then
@@ -22,14 +26,7 @@ function M.is_eligible(context)
             and inside_current_node(context)
     end
 
-    -- Inline executable contexts
-    if categories.sets.EXECUTABLE[category]
-        or category == categories.types.MEMBER_ACCESS
-    then
-        return true
-    end
-
-    if category == categories.types.COMMENT or category == categories.type.STRING then
+    if category == categories.types.COMMENT or category == categories.types.STRING then
         return false
     end
 

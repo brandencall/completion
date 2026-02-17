@@ -9,11 +9,17 @@ local categories = require("completion.categories")
 --- @field err_node_present boolean
 --- @field context_start integer
 --- @field context_end integer
+--- @field is_trigger boolean
 
 ---@class NodeConfig
 ---@field full_scope_categories string[]
 ---@field file_scope_category string
 
+---@class LangConfig
+---@field parser_name string
+---@field node_map table<string, CategoryType>
+---@field trigger_characters table<string, boolean>?
+---@field trigger_keywords table<string, boolean>?
 
 local lang = {}
 
@@ -36,58 +42,94 @@ end
 ---@return integer | nil
 ---@return integer | nil
 ---@return CategoryType | nil
+---@return TSNode | nil
 local function get_context_range(row, curr_node, node_map)
     local node = curr_node
-    local start_row, end_row, category = nil, nil, nil
+    local start_row, end_row, category, scope_node = nil, nil, nil, nil
     while node do
         local cur_category = node_map[node:type()]
         if cur_category then
             if categories.scope_sets.FULL[cur_category] and cur_category == "func" then
                 start_row, _, end_row, _ = node:range()
                 category = cur_category
+                scope_node = node
             elseif categories.scope_sets.FULL[cur_category] then
                 start_row, _, end_row, _ = node:range()
                 category = cur_category
-                return start_row, end_row, category
+                scope_node = node
+                return start_row, end_row, category, scope_node
             end
             if categories.scope_sets.PARTIAL[cur_category] and not start_row and not end_row then
                 start_row, _, _, _ = node:range()
                 category = cur_category
-                return start_row, row, category
+                scope_node = node
+                return start_row, row, category, scope_node
             end
         end
 
         node = node:parent()
     end
-    return start_row, end_row, category
+    return start_row, end_row, category, scope_node
 end
 
----@param ts_lang string The language that treesitter defines for it
----@param node_map table<string, CategoryType>
+---@param col integer
+---@param skip_whitespace boolean
+---@return string | nil
+local function get_last_char(col, skip_whitespace)
+    local line = vim.api.nvim_get_current_line()
+
+    if col == 0 then
+        return nil
+    end
+
+    if not skip_whitespace then
+        return line:sub(col + 1, col + 1)
+    end
+
+    local before = line:sub(1, col + 1)
+    return before:match(".*(%S)%s*$")
+end
+
+local function get_last_token(col)
+    local current_line = vim.api.nvim_get_current_line()
+
+    local line = current_line:sub(1, col + 1)
+    return line:match("(%w+)$")
+end
+
+---@param config LangConfig
 ---@return _ ContextSnapshot
-function lang.get_context_snapshot(ts_lang, node_map)
-    local curr_node = ts.get_node_at_cursor(0, ts_lang)
+function lang.get_context_snapshot(config)
+    local curr_node = ts.get_node_at_cursor(0, config.parser_name)
     if not curr_node then
         return nil
     end
-    local row, _ = unpack(vim.api.nvim_win_get_cursor(0))
-    local context_start, context_end, scope_set_category = get_context_range(row, curr_node, node_map)
+    local row, col = unpack(vim.api.nvim_win_get_cursor(0))
+    local last_char = get_last_char(col, true)
+    local last_token = get_last_token(col)
+
+    local is_trigger = false
+    local trigger_chars = config.trigger_characters or {}
+    local trigger_keywords = config.trigger_keywords or {}
+    is_trigger = trigger_chars[last_char] or trigger_keywords[last_token] or false
+
+    local context_start, context_end, scope_set_category, scope_node = get_context_range(row, curr_node, config.node_map)
     if not context_start and not context_end and not scope_set_category then
         return nil
     end
-    local scope = ts.get_current_scope(curr_node)
     --- @type ContextSnapshot
     return {
         node = curr_node,
-        category = node_map[curr_node:type()],
+        category = config.node_map[curr_node:type()],
         ---@diagnostic disable-next-line: assign-type-mismatch
         scope_set_category = scope_set_category,
         curr_row = row - 1,
-        err_node_present = ts.contains_err_node(scope),
+        err_node_present = ts.contains_err_node(scope_node),
         ---@diagnostic disable-next-line: assign-type-mismatch
         context_start = context_start,
         ---@diagnostic disable-next-line: assign-type-mismatch
         context_end = context_end,
+        is_trigger = is_trigger
     }
 end
 

@@ -11,15 +11,35 @@ local lua_map = {
     for_statement        = categories.types.LOOP,
     function_declaration = categories.types.FUNCTION,
     local_function       = categories.types.FUNCTION,
-    assignment_statement = categories.types.DECLARATION,
-    binary_expression    = categories.types.EXPRESSION,
-    function_call        = categories.types.EXPRESSION,
-    arguments            = categories.types.EXPRESSION,
-    field_expression     = categories.types.MEMBER_ACCESS,
-    table_constructor    = categories.types.EXPRESSION,
     chunk                = categories.types.TOP_LEVEL,
     comment              = categories.types.COMMENT,
     string               = categories.types.STRING
+}
+
+---@type table<string, boolean>
+local trigger_characters = {
+    ["."] = true,
+    [":"] = true,
+    ["("] = true,
+    ["{"] = true,
+    ["["] = true,
+    [","] = true,
+    ["="] = true,
+}
+
+local trigger_keywords = {
+    ["if"] = true,
+    ["for"] = true,
+    ["while"] = true,
+    ["return"] = true,
+}
+
+---@type LangConfig
+M.config = {
+    parser_name = "lua",
+    node_map = lua_map,
+    trigger_characters = trigger_characters,
+    trigger_keywords = trigger_keywords
 }
 
 function M.is_applicable(bufnr)
@@ -28,7 +48,7 @@ end
 
 --- @return ContextSnapshot?
 function M.get_context_snapshot()
-    return lang.get_context_snapshot("lua", lua_map)
+    return lang.get_context_snapshot(M.config)
 end
 
 return M

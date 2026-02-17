@@ -5,26 +5,52 @@ local M = {}
 
 ---@type table<string, CategoryType>
 local csharp_map = {
-    block                    = categories.types.BLOCK,
-    if_statement             = categories.types.CONTROL_FLOW,
-    while_statement          = categories.types.LOOP,
-    for_statement            = categories.types.LOOP,
-    foreach_statement        = categories.types.LOOP,
-    class_declaration        = categories.types.CLASS,
-    method_declaration       = categories.types.FUNCTION,
-    constructor_declaration  = categories.types.FUNCTION,
-    property_declaration     = categories.types.DECLARATION,
-    identifier               = categories.types.DECLARATION,
-    binary_expression        = categories.types.EXPRESSION,
-    invocation_expression    = categories.types.EXPRESSION,
-    argument_list            = categories.types.EXPRESSION,
-    member_access_expression = categories.types.MEMBER_ACCESS,
-    compilation_unit         = categories.types.TOP_LEVEL,
-    interface_declaration    = categories.types.INTERFACE,
-    struct_declaration       = categories.types.STRUCT,
-    enum_declaration         = categories.types.ENUM,
-    comment                  = categories.types.COMMENT,
-    string_literal           = categories.types.STRING
+    block                   = categories.types.BLOCK,
+    if_statement            = categories.types.CONTROL_FLOW,
+    while_statement         = categories.types.LOOP,
+    for_statement           = categories.types.LOOP,
+    foreach_statement       = categories.types.LOOP,
+    class_declaration       = categories.types.CLASS,
+    method_declaration      = categories.types.FUNCTION,
+    constructor_declaration = categories.types.FUNCTION,
+    compilation_unit        = categories.types.TOP_LEVEL,
+    interface_declaration   = categories.types.INTERFACE,
+    struct_declaration      = categories.types.STRUCT,
+    enum_declaration        = categories.types.ENUM,
+    comment                 = categories.types.COMMENT,
+    string_literal          = categories.types.STRING
+}
+
+---@type table<string, boolean>
+local trigger_characters = {
+    ["."] = true,
+    ["("] = true,
+    ["<"] = true,
+    ["["] = true,
+    [":"] = true,
+    [","] = true,
+    [">"] = true,
+    ["="] = true,
+}
+
+---@type table<string, boolean>
+local trigger_keywords = {
+    ["if"] = true,
+    ["for"] = true,
+    ["while"] = true,
+    ["return"] = true,
+    ["new"] = true,
+    ["throw"] = true,
+    ["case"] = true,
+    ["await"] = true,
+}
+
+---@type LangConfig
+M.config = {
+    parser_name = "c_sharp",
+    node_map = csharp_map,
+    trigger_characters = trigger_characters,
+    trigger_keywords = trigger_keywords
 }
 
 function M.is_applicable(bufnr)
@@ -33,7 +59,7 @@ end
 
 --- @return ContextSnapshot?
 function M.get_context_snapshot()
-    return lang.get_context_snapshot("c_sharp", csharp_map)
+    return lang.get_context_snapshot(M.config)
 end
 
 return M

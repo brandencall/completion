@@ -12,7 +12,7 @@ if helper.has_csharp_parser() then
         end)
         it("returns FULL context for method", function()
             -- place cursor inside method body
-            local row = helper.goto_marker("return a + b + _base")
+            local row = helper.goto_marker("return a + b + _base;")
 
             local snapshot = lang.get_context_snapshot()
             assert(snapshot)
@@ -43,7 +43,6 @@ if helper.has_csharp_parser() then
             local snapshot = lang.get_context_snapshot()
             assert(snapshot)
 
-            assert.equals("declaration", snapshot.category)
             assert.equals("enum", snapshot.scope_set_category)
             assert.equals(8, snapshot.context_start)
             assert.equals(13, snapshot.context_end)
@@ -83,7 +82,7 @@ if helper.has_csharp_parser() then
             assert.equals("top_level", snapshot.scope_set_category)
 
             assert.equals(0, snapshot.curr_row)
-            assert.equals(false, snapshot.err_node_present)
+            assert.equals(true, snapshot.err_node_present)
 
             assert.equals(0, snapshot.context_start)
             assert.equals(1, snapshot.context_end)
