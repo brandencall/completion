@@ -10,6 +10,7 @@ local categories = require("completion.categories")
 --- @field context_start integer
 --- @field context_end integer
 --- @field is_trigger boolean
+--- @field row_empty boolean
 
 ---@class NodeConfig
 ---@field full_scope_categories string[]
@@ -72,46 +73,22 @@ local function get_context_range(row, curr_node, node_map)
     return start_row, end_row, category, scope_node
 end
 
----@param col integer
----@param skip_whitespace boolean
----@return string | nil
-local function get_last_char(col, skip_whitespace)
-    local line = vim.api.nvim_get_current_line()
-
-    if col == 0 then
-        return nil
+local function is_row_empty(current_line)
+    if not current_line then
+        return true
     end
-
-    if not skip_whitespace then
-        return line:sub(col + 1, col + 1)
-    end
-
-    local before = line:sub(1, col + 1)
-    return before:match(".*(%S)%s*$")
-end
-
-local function get_last_token(col)
-    local current_line = vim.api.nvim_get_current_line()
-
-    local line = current_line:sub(1, col + 1)
-    return line:match("(%w+)$")
+    return current_line:match("^%s*$") ~= nil
 end
 
 ---@param config LangConfig
 ---@return _ ContextSnapshot
-function lang.get_context_snapshot(config)
+function lang.get_context_snapshot(config, is_trigger)
     local curr_node = ts.get_node_at_cursor(0, config.parser_name)
     if not curr_node then
         return nil
     end
-    local row, col = unpack(vim.api.nvim_win_get_cursor(0))
-    local last_char = get_last_char(col, true)
-    local last_token = get_last_token(col)
-
-    local is_trigger = false
-    local trigger_chars = config.trigger_characters or {}
-    local trigger_keywords = config.trigger_keywords or {}
-    is_trigger = trigger_chars[last_char] or trigger_keywords[last_token] or false
+    local row, _ = unpack(vim.api.nvim_win_get_cursor(0))
+    local current_line = vim.api.nvim_get_current_line()
 
     local context_start, context_end, scope_set_category, scope_node = get_context_range(row, curr_node, config.node_map)
     if not context_start and not context_end and not scope_set_category then
@@ -129,7 +106,8 @@ function lang.get_context_snapshot(config)
         context_start = context_start,
         ---@diagnostic disable-next-line: assign-type-mismatch
         context_end = context_end,
-        is_trigger = is_trigger
+        is_trigger = is_trigger,
+        row_empty = is_row_empty(current_line)
     }
 end
 

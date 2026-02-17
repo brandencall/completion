@@ -25,11 +25,11 @@ describe("get_context_snapshot() (lua)", function()
         local line = vim.api.nvim_buf_get_lines(0, row - 1, row, false)[1]
         vim.api.nvim_win_set_cursor(0, { row, #line })
 
-        local context = lang.get_context_snapshot()
+        local context = lang.get_context_snapshot(false)
         assert.is_true(eligibility.is_eligible(context))
     end)
 
-    it("is not eligible inside broken if condition", function()
+    it("is eligible inside broken if condition. Trigger on 'if'", function()
         vim.api.nvim_buf_set_lines(0, 0, -1, false, {
             "local function test()",
             "    if ",
@@ -40,8 +40,8 @@ describe("get_context_snapshot() (lua)", function()
         local line = vim.api.nvim_buf_get_lines(0, row - 1, row, false)[1]
         vim.api.nvim_win_set_cursor(0, { row, #line })
 
-        local context = lang.get_context_snapshot()
-        assert.is_false(eligibility.is_eligible(context))
+        local context = lang.get_context_snapshot(true)
+        assert.is_true(eligibility.is_eligible(context))
     end)
 
     -- =========================
@@ -58,7 +58,7 @@ describe("get_context_snapshot() (lua)", function()
         local line = vim.api.nvim_buf_get_lines(0, row - 1, row, false)[1]
         vim.api.nvim_win_set_cursor(0, { row, #line })
 
-        local context = lang.get_context_snapshot()
+        local context = lang.get_context_snapshot(true)
         assert.is_true(eligibility.is_eligible(context))
     end)
 
@@ -72,7 +72,7 @@ describe("get_context_snapshot() (lua)", function()
         local line = vim.api.nvim_buf_get_lines(0, row - 1, row, false)[1]
         vim.api.nvim_win_set_cursor(0, { row, #line })
 
-        local context = lang.get_context_snapshot()
+        local context = lang.get_context_snapshot(true)
         assert.is_true(eligibility.is_eligible(context))
     end)
 
@@ -85,7 +85,7 @@ describe("get_context_snapshot() (lua)", function()
         local line = vim.api.nvim_buf_get_lines(0, row - 1, row, false)[1]
         vim.api.nvim_win_set_cursor(0, { row, #line })
 
-        local context = lang.get_context_snapshot()
+        local context = lang.get_context_snapshot(true)
         assert.is_true(eligibility.is_eligible(context))
     end)
 
@@ -98,7 +98,7 @@ describe("get_context_snapshot() (lua)", function()
         local line = vim.api.nvim_buf_get_lines(0, row - 1, row, false)[1]
         vim.api.nvim_win_set_cursor(0, { row, #line })
 
-        local context = lang.get_context_snapshot()
+        local context = lang.get_context_snapshot(true)
         assert.is_true(eligibility.is_eligible(context))
     end)
 
@@ -112,7 +112,7 @@ describe("get_context_snapshot() (lua)", function()
         local line = vim.api.nvim_buf_get_lines(0, row - 1, row, false)[1]
         vim.api.nvim_win_set_cursor(0, { row, #line })
 
-        local context = lang.get_context_snapshot()
+        local context = lang.get_context_snapshot(true)
         assert.is_true(eligibility.is_eligible(context))
     end)
 
@@ -125,7 +125,7 @@ describe("get_context_snapshot() (lua)", function()
         local line = vim.api.nvim_buf_get_lines(0, row - 1, row, false)[1]
         vim.api.nvim_win_set_cursor(0, { row, #line })
 
-        local context = lang.get_context_snapshot()
+        local context = lang.get_context_snapshot(true)
         assert.is_true(eligibility.is_eligible(context))
     end)
 
@@ -138,7 +138,7 @@ describe("get_context_snapshot() (lua)", function()
         local line = vim.api.nvim_buf_get_lines(0, row - 1, row, false)[1]
         vim.api.nvim_win_set_cursor(0, { row, #line })
 
-        local context = lang.get_context_snapshot()
+        local context = lang.get_context_snapshot(true)
         assert.is_true(eligibility.is_eligible(context))
     end)
 
@@ -155,7 +155,7 @@ describe("get_context_snapshot() (lua)", function()
         local line = vim.api.nvim_buf_get_lines(0, row - 1, row, false)[1]
         vim.api.nvim_win_set_cursor(0, { row, #line })
 
-        local context = lang.get_context_snapshot()
+        local context = lang.get_context_snapshot(true)
         assert.is_true(eligibility.is_eligible(context))
     end)
 
@@ -168,7 +168,7 @@ describe("get_context_snapshot() (lua)", function()
         local line = vim.api.nvim_buf_get_lines(0, row - 1, row, false)[1]
         vim.api.nvim_win_set_cursor(0, { row, #line })
 
-        local context = lang.get_context_snapshot()
+        local context = lang.get_context_snapshot(true)
         assert.is_true(eligibility.is_eligible(context))
     end)
 
@@ -181,7 +181,7 @@ describe("get_context_snapshot() (lua)", function()
         local line = vim.api.nvim_buf_get_lines(0, row - 1, row, false)[1]
         vim.api.nvim_win_set_cursor(0, { row, #line })
 
-        local context = lang.get_context_snapshot()
+        local context = lang.get_context_snapshot(true)
         assert.is_true(eligibility.is_eligible(context))
     end)
 
@@ -196,7 +196,7 @@ describe("get_context_snapshot() (lua)", function()
         local line = vim.api.nvim_buf_get_lines(0, row - 1, row, false)[1]
         vim.api.nvim_win_set_cursor(0, { row, #line })
 
-        local context = lang.get_context_snapshot()
+        local context = lang.get_context_snapshot(true)
         assert.is_true(eligibility.is_eligible(context))
     end)
 
@@ -215,7 +215,7 @@ describe("get_context_snapshot() (lua)", function()
         local line = vim.api.nvim_buf_get_lines(0, row - 1, row, false)[1]
         vim.api.nvim_win_set_cursor(0, { row, #line })
 
-        local context = lang.get_context_snapshot()
+        local context = lang.get_context_snapshot(false)
         assert.is_false(eligibility.is_eligible(context))
     end)
 
@@ -228,7 +228,26 @@ describe("get_context_snapshot() (lua)", function()
         local line = vim.api.nvim_buf_get_lines(0, row - 1, row, false)[1]
         vim.api.nvim_win_set_cursor(0, { row, #line })
 
-        local context = lang.get_context_snapshot()
+        local context = lang.get_context_snapshot(false)
+        assert.is_false(eligibility.is_eligible(context))
+    end)
+
+    it("is not eligible inside block scope when line is not empty", function()
+        vim.api.nvim_buf_set_lines(0, 0, -1, false, {
+            "function M.sum_upto(n)",
+            "    local sum = 0",
+            "    local i = 1",
+            "    while i <= n do",
+            "        local test ",
+            "    end",
+            "end"
+        })
+
+        local row = 5
+        local line = vim.api.nvim_buf_get_lines(0, row - 1, row, false)[1]
+        vim.api.nvim_win_set_cursor(0, { row, #line })
+
+        local context = lang.get_context_snapshot(false)
         assert.is_false(eligibility.is_eligible(context))
     end)
 end)

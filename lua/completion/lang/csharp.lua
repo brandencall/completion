@@ -57,9 +57,10 @@ function M.is_applicable(bufnr)
     return vim.bo[bufnr].filetype == "cs"
 end
 
+--- @param is_trigger boolean Collecting context based on if it is a trigger or not
 --- @return ContextSnapshot?
-function M.get_context_snapshot()
-    return lang.get_context_snapshot(M.config)
+function M.get_context_snapshot(is_trigger)
+    return lang.get_context_snapshot(M.config, is_trigger)
 end
 
 return M

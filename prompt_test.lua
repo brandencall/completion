@@ -37,8 +37,6 @@ function M.filter_positive(values)
     local result = {}
 
     for i = 1, #values do
-        if values[i] > 0 then
-        end
     end
 end
 

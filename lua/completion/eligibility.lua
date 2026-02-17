@@ -15,20 +15,20 @@ function M.is_eligible(context)
         return false
     end
 
+    local category = context.category
+    if category == categories.types.COMMENT or category == categories.types.STRING then
+        return false
+    end
     if context.is_trigger then
         return true
     end
-
-    local category = context.category
     -- Block-like structures (if, loops, block, class, etc.)
     if categories.sets.BLOCK_LIKE[category] then
         return not error_node_present(context)
             and inside_current_node(context)
+            and context.row_empty
     end
 
-    if category == categories.types.COMMENT or category == categories.types.STRING then
-        return false
-    end
 
     return false
 end
