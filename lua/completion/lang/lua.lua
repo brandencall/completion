@@ -19,6 +19,7 @@ local lua_map = {
     table_constructor    = categories.types.EXPRESSION,
     chunk                = categories.types.TOP_LEVEL,
     comment              = categories.types.COMMENT,
+    string               = categories.types.STRING
 }
 
 function M.is_applicable(bufnr)

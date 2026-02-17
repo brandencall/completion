@@ -37,6 +37,7 @@ M.types = {
     COMMENT = "comment",
     TOP_LEVEL = "top_level",
     MEMBER_ACCESS = "member_access",
+    STRING = "string"
 }
 
 -- Optional grouped sets (helps eligibility logic stay clean)

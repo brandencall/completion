@@ -11,7 +11,7 @@ local function inside_current_node(context)
 end
 
 function M.is_eligible(context)
-    if not context or not context.category then
+    if not context or not context.scope_set_category then
         return false
     end
 
@@ -29,13 +29,8 @@ function M.is_eligible(context)
         return true
     end
 
-    if categories.types.COMMENT then
+    if category == categories.types.COMMENT or category == categories.type.STRING then
         return false
-    end
-
-    -- Functions (Lua required error check)
-    if category == categories.types.FUNCTION then
-        return not error_node_present(context)
     end
 
     return false

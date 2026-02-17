@@ -132,7 +132,8 @@ namespace Demo
             object value = Console.WriteLine($"{person.Name} is {person.Age}");
         }
     }
-    class Test
+
+    internal class NewBaseType
     {
         void M()
         {
