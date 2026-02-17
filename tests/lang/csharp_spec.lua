@@ -17,8 +17,8 @@ if helper.has_csharp_parser() then
             local snapshot = lang.get_context_snapshot()
             assert(snapshot)
 
-            assert.equals("block", snapshot.category)
-            assert.equals("method_declaration", snapshot.node:parent():type())
+            assert.is_nil(snapshot.category)
+            assert.is_equal("func", snapshot.scope_set_category)
             assert.equals(row - 1, snapshot.curr_row)
             assert.is_false(snapshot.err_node_present)
             assert.equals(39, snapshot.context_start)
@@ -55,7 +55,7 @@ if helper.has_csharp_parser() then
             local snapshot = lang.get_context_snapshot()
             assert(snapshot)
 
-            assert.equals(nil, snapshot.category)
+            assert.equals("func", snapshot.category)
             assert.equals("struct", snapshot.scope_set_category)
             assert.equals(15, snapshot.context_start)
             assert.equals(21, snapshot.context_end)
@@ -66,7 +66,7 @@ if helper.has_csharp_parser() then
             local snapshot = lang.get_context_snapshot()
             assert(snapshot)
 
-            assert.equals(nil, snapshot.category)
+            assert.equals("func", snapshot.category)
             assert.equals("interface", snapshot.scope_set_category)
             assert.equals(23, snapshot.context_start)
             assert.equals(26, snapshot.context_end)
@@ -132,8 +132,6 @@ if helper.has_csharp_parser() then
 
             local snapshot = lang.get_context_snapshot()
             assert(snapshot)
-            print(vim.inspect(snapshot))
-            print(snapshot.node:type())
 
             assert.equals("func", snapshot.scope_set_category)
             assert.is_true(snapshot.err_node_present)

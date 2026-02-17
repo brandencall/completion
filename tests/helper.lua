@@ -19,7 +19,12 @@ end
 function M.goto_marker(text)
     local row = vim.fn.search(text)
     assert.is_true(row > 0, "Marker not found: " .. text)
-    vim.api.nvim_win_set_cursor(0, { row, 8 })
+
+    local line = vim.api.nvim_buf_get_lines(0, row - 1, row, false)[1]
+    local col = #line
+
+    vim.api.nvim_win_set_cursor(0, { row, col })
+
     return row
 end
 

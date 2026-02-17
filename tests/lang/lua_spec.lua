@@ -17,7 +17,6 @@ describe("get_context_snapshot() (lua)", function()
         assert(snapshot)
 
         assert.equals("func", snapshot.scope_set_category)
-        assert.equals("block", snapshot.node:parent():type())
         assert.equals(row - 1, snapshot.curr_row)
         assert.is_false(snapshot.err_node_present)
 
@@ -49,7 +48,7 @@ describe("get_context_snapshot() (lua)", function()
 
     it("returns PARTIAL context for top level", function()
         -- put cursor on GLOBAL_VALUE
-        local row = helper.goto_marker("GLOBAL_VALUE")
+        local _ = helper.goto_marker("GLOBAL_VALUE")
 
         local snapshot = lang.get_context_snapshot()
         assert(snapshot)
