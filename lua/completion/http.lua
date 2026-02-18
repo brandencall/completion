@@ -80,7 +80,7 @@ end
 --- This function is responible for sending prompt requests to agent server.
 --- @param prompt_request PromptRequest
 function M.handle_completion(prompt_request)
-    local url = config.server.url .. config.server.endpoint
+    local url = config.server.host .. ":" .. config.server.port .. config.server.endpoint
     local body = {
         input_prefix = prompt_request.prefix,
         input_suffix = prompt_request.suffix,
