@@ -59,10 +59,10 @@ The startup path is used only if the server is on the same machine (this enables
 The plugin automatically triggers in Insert mode after idle timeout and if certian trigger criteria is met.
 
 Accept suggestion:
-<Tab>
+`<Tab>`
 
 Dismiss suggestion:
-<Esc> (or keep typing)
+`<Esc>` (or keep typing)
 
 Commands:
 - CompletionEnable will enable the plugin (and starts up the server if hosted on the same machine).
