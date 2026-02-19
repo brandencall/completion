@@ -32,7 +32,9 @@ function M.create_extmarks_for_render(row, col, suffix)
             -- Stop rendering completely if the line matches the suffix immediately
             if not marks[render_row] then
                 state.clear_agent_response_state()
-                -- Send event to completely stop prompting of the agent
+                vim.api.nvim_exec_autocmds("User", {
+                    pattern = "StopProcessingAgentResponse",
+                })
                 return {}
             end
             local prev_render_chunk_len = #marks[render_row].firstLine + #marks[render_row].lines

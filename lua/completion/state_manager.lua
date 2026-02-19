@@ -191,8 +191,20 @@ vim.api.nvim_create_autocmd("TextChangedI", {
     group = state_group,
     callback = function()
         user_typing()
+        vim.api.nvim_exec_autocmds("User", {
+            pattern = "StopProcessingAgentResponse",
+        })
     end,
     desc = "Trigger callback when text changes in insert mode"
+})
+
+vim.api.nvim_create_autocmd("CompleteDone", {
+    callback = function()
+        M.clear_agent_response_state()
+        vim.api.nvim_exec_autocmds("User", {
+            pattern = "StopProcessingAgentResponse",
+        })
+    end
 })
 
 return M

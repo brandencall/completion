@@ -100,7 +100,8 @@ function M.insert_agent_text()
     end
 
     local _, col = unpack(
-        vim.api.nvim_buf_get_extmark_by_id(state.BufferState.buf, state.BufferState.ns, state.BufferState.anchor_mark_id, {})
+        vim.api.nvim_buf_get_extmark_by_id(state.BufferState.buf, state.BufferState.ns, state.BufferState.anchor_mark_id,
+            {})
     )
 
     local rows = {}
@@ -137,6 +138,7 @@ end
 
 vim.keymap.set('i', '<Tab>', function()
     if state.BufferState.text ~= "" then
+        -- Could send "StopProcessingAgentResponse" on completion if we want
         M.insert_agent_text()
         return ""
     end

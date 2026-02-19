@@ -6,6 +6,13 @@ local M = {}
 
 local active_job = nil
 
+local function StopProcessing()
+    if active_job then
+        active_job:shutdown()
+        active_job = nil
+    end
+end
+
 vim.api.nvim_create_autocmd("User", {
     pattern = "AgentRequest",
     callback = function(event)
@@ -16,12 +23,12 @@ vim.api.nvim_create_autocmd("User", {
 
 vim.api.nvim_create_autocmd("User", {
     pattern = "IdleState",
-    callback = function()
-        if active_job then
-            active_job:shutdown()
-            active_job = nil
-        end
-    end,
+    callback = StopProcessing
+})
+
+vim.api.nvim_create_autocmd("User", {
+    pattern = "StopProcessingAgentResponse",
+    callback = StopProcessing
 })
 
 local function stream_llm_post(url, body_table, suffix, on_chunk_callback, on_complete_callback)
