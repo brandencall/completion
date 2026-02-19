@@ -11,7 +11,8 @@ completion is designed to:
 - Prompt automatically as the user types.
 
 ## Demo
-<video src="assets/completion_demo.mp4" controls width="800"></video>
+https://github.com/user-attachments/assets/d422928c-a077-4ecb-ae3c-ed40e3d4c159
+
 
 ## Features
 - Automatic LLM server startup and shutdown.
