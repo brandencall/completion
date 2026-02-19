@@ -2,14 +2,6 @@ local state = require("completion.state_manager")
 
 local M = {}
 
-function M.clear_text()
-    if not state.BufferState.buf then return end
-    vim.api.nvim_buf_clear_namespace(state.BufferState.buf, state.BufferState.ns, 0, -1)
-    state.BufferState.anchor_mark_id = nil
-    state.BufferState.text = ""
-    state.BufferState.insert_plan = nil
-end
-
 ---@param row integer
 ---@param col integer
 ---@param lines table
@@ -139,7 +131,7 @@ function M.insert_agent_text()
         vim.api.nvim_win_set_cursor(0, { last_row_set, last_col_set })
     end)
 
-    M.clear_text();
+    state.clear_agent_response_state();
     return ""
 end
 
@@ -154,28 +146,28 @@ end, { expr = true, silent = true })
 vim.api.nvim_create_autocmd("User", {
     pattern = "IdleState",
     callback = function()
-        M.clear_text()
+        state.clear_agent_response_state()
     end
 })
 
 vim.api.nvim_create_autocmd("User", {
     pattern = "UserTyping",
     callback = function()
-        M.clear_text()
+        state.clear_agent_response_state()
     end
 })
 
 vim.api.nvim_create_autocmd("User", {
     pattern = "AgentRequest",
     callback = function()
-        M.clear_text()
+        state.clear_agent_response_state()
     end
 })
 
 vim.api.nvim_create_autocmd("User", {
     pattern = "PluginDisabled",
     callback = function()
-        M.clear_text()
+        state.clear_agent_response_state()
     end,
 })
 

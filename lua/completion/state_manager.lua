@@ -33,6 +33,14 @@ M.BufferState = {
     ns = vim.api.nvim_create_namespace("agent_response")
 }
 
+function M.clear_agent_response_state()
+    if not M.BufferState.buf then return end
+    vim.api.nvim_buf_clear_namespace(M.BufferState.buf, M.BufferState.ns, 0, -1)
+    M.BufferState.anchor_mark_id = nil
+    M.BufferState.text = ""
+    M.BufferState.insert_plan = nil
+end
+
 local pending = {
     lang = nil,
     is_trigger = false,

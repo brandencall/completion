@@ -1,4 +1,5 @@
 local render = require("completion.agent_response.render")
+local state = require("completion.state_manager")
 local display = require("completion.agent_response.display_response")
 local helper = require("tests.helper")
 
@@ -7,7 +8,7 @@ describe("renderer", function()
     local restore_schedule
 
     before_each(function()
-        display.clear_text()
+        state.clear_agent_response_state()
         vim.cmd("enew!")
         restore_mode = helper.mock_mode_insert()
         restore_schedule = helper.mock_schedule_sync()

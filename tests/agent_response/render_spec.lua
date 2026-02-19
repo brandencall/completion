@@ -1,5 +1,5 @@
 local render = require("completion.agent_response.render")
-local display = require("completion.agent_response.display_response")
+local state = require("completion.state_manager")
 local helper = require("tests.helper")
 
 describe("render", function()
@@ -7,7 +7,7 @@ describe("render", function()
     local restore_schedule
 
     before_each(function()
-        display.clear_text()
+        state.clear_agent_response_state()
         vim.cmd("enew!")
         restore_mode = helper.mock_mode_insert()
         restore_schedule = helper.mock_schedule_sync()
@@ -145,5 +145,28 @@ describe("render", function()
             },
             virt4.virt_lines
         )
+    end)
+
+    it("stops rendering when LLM output immediately matches suffix", function()
+        -- Arrange
+        state.BufferState = {
+            text = 'Console.WriteLine("Hello");\n}',
+            insert_plan = {}
+        }
+
+        local suffix = {
+            'Console.WriteLine("Hello");',
+            '}'
+        }
+
+        local row = 10
+        local col = 4
+
+        -- Act
+        local marks = render.create_extmarks_for_render(row, col, suffix)
+
+        -- Assert
+        assert.are.same({}, marks)
+        assert.are.same({}, state.BufferState.insert_plan)
     end)
 end)

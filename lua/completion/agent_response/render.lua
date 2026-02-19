@@ -29,7 +29,12 @@ function M.create_extmarks_for_render(row, col, suffix)
 
     for line in state.BufferState.text:gmatch("[^\r\n]+") do
         if line == suffix[suffix_match_idx] then
-            -- Nil check needed for marks!
+            -- Stop rendering completely if the line matches the suffix immediately
+            if not marks[render_row] then
+                state.clear_agent_response_state()
+                -- Send event to completely stop prompting of the agent
+                return {}
+            end
             local prev_render_chunk_len = #marks[render_row].firstLine + #marks[render_row].lines
             rendered_chunk_sum = rendered_chunk_sum + prev_render_chunk_len
             -- The actual row is the current render_row + the previous chunk that was rendered
@@ -43,13 +48,13 @@ function M.create_extmarks_for_render(row, col, suffix)
             }
             goto continue
         end
-        if not marks[row] then
-            marks[row] = {
+        if not marks[render_row] then
+            marks[render_row] = {
                 firstLine = {},
                 lines = {},
                 col = col,
             }
-            table.insert(marks[row].firstLine, {
+            table.insert(marks[render_row].firstLine, {
                 { line, "Comment" }
             })
         else
