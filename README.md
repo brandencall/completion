@@ -11,13 +11,17 @@ completion is designed to:
 - Prompt automatically as the user types.
 
 ## Demo
-(Need to add a demo video)
+<video src="assets/completion_demo.mp4" controls width="800"></video>
 
 ## Features
 - Automatic LLM server startup and shutdown.
 - Tree-sitter context awareness.
 - Per language prompting triggers.
 - Automatic LLM prompting
+
+Current supported languages:
+- lua
+- csharp
 
 ## Installation
 Using lazy.nvim:
