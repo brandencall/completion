@@ -20,9 +20,19 @@ function M.setup(user_config)
     })
 end
 
---function M.start()
---    state.enable()
---end
+vim.api.nvim_create_user_command("CompletionEnable", function()
+    state.enable()
+    server.start(config.get())
+    vim.notify("Completion enabled")
+end, {})
+
+vim.api.nvim_create_user_command("CompletionDisable", function()
+    state.disable()
+    state.clear_agent_response_state()
+    server.stop()
+
+    vim.notify("Completion disabled")
+end, {})
 
 function M.stop()
     state.disable()
