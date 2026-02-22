@@ -5,7 +5,8 @@ local M = {}
 M.langs = {
     lua = require("completion.lang.lua"),
     csharp = require("completion.lang.csharp"),
-    cpp = require("completion.lang.cpp")
+    cpp = require("completion.lang.cpp"),
+    c = require("completion.lang.c")
 }
 
 for name, lang in pairs(M.langs) do

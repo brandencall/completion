@@ -24,6 +24,7 @@ Current supported languages:
 - lua
 - csharp
 - cpp
+- c
 
 ## Installation
 Using lazy.nvim:

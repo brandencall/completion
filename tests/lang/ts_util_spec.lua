@@ -325,3 +325,105 @@ else
         pending("cpp Treesitter parser not installed")
     end)
 end
+
+if helper.has_parser("c") then
+    describe("treesitter (c)", function()
+        it("get_function_node(): gets the current function", function()
+            local buf, root = helper.parse_lines({
+                "#include <stdio.h>",
+                "",
+                "void TestFunction() {",
+                "    int x = 42;",
+                "    printf(\"%d\", x);",
+                "}",
+            }, "c")
+
+            local id_node = helper.find_identifier(root, buf, "x", "c")
+            assert(id_node)
+
+            local func_node = ts_utils.get_function_node(
+                id_node,
+                "function_definition"
+            )
+
+            assert(func_node)
+            assert.equals("function_definition", func_node:type())
+        end)
+
+        it("get_current_scope(): returns the enclosing function_definition", function()
+            local buf, root = helper.parse_lines({
+                "void Method() {",
+                "  int x = 10;",
+                "}",
+            }, "c")
+
+            local id_node = helper.find_identifier(root, buf, "x", "c")
+            assert(id_node)
+
+            local scope = ts_utils.get_current_scope(id_node)
+            assert(scope)
+
+            assert.equals("function_definition", scope:type())
+        end)
+
+        it("get_current_scope(): returns nearest function_definition when nested", function()
+            local buf, root = helper.parse_lines({
+                "void Method() {",
+                "  if (1) {",
+                "    int y = 5;",
+                "  }",
+                "}",
+            }, "c")
+
+            local id_node = helper.find_identifier(root, buf, "y", "c")
+            assert(id_node)
+
+            local scope = ts_utils.get_current_scope(id_node)
+            assert(scope)
+
+            assert.equals("function_definition", scope:type())
+        end)
+
+        it("get_current_scope(): returns nil if no compound scope found", function()
+            local buf, root = helper.parse_lines({
+                "int z = 5;",
+            }, "c")
+
+            local id_node = helper.find_identifier(root, buf, "z", "c")
+            assert(id_node)
+
+            local scope = ts_utils.get_current_scope(id_node)
+
+            -- No function_definition at top level
+            assert.is_nil(scope)
+        end)
+
+        it("contains_err_node(): returns false for valid syntax tree", function()
+            local _, root = helper.parse_lines({
+                "void Method() {",
+                "  int a = 1;",
+                "}",
+            }, "c")
+
+            assert.is_false(ts_utils.contains_err_node(root))
+        end)
+
+        it("contains_err_node(): returns true when syntax error exists", function()
+            local _, root = helper.parse_lines({
+                "void Method() {",
+                "  int a = ", -- invalid syntax
+                "}",
+            }, "c")
+
+            assert.is_true(ts_utils.contains_err_node(root))
+        end)
+
+        it("contains_err_node(): returns false for nil node", function()
+            assert.is_false(ts_utils.contains_err_node(nil))
+        end)
+    end)
+else
+    describe("treesitter (c)", function()
+        pending("c Treesitter parser not installed")
+    end)
+end
