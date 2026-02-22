@@ -1,7 +1,7 @@
 local lang = require("completion.lang.cpp")
 local helper = require("tests.helper")
 
-if helper.has_cpp_parser() then
+if helper.has_parser("cpp") then
     describe("get_context_snapshot() (cpp)", function()
         before_each(function()
             vim.cmd("edit tests/fixtures/sample.cpp")

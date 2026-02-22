@@ -2,7 +2,7 @@ local lang = require("completion.lang.csharp")
 local eligibility = require("completion.eligibility")
 local helper = require("tests.helper")
 
-if helper.has_csharp_parser() then
+if helper.has_parser("c_sharp") then
     describe("get_context_snapshot() (csharp)", function()
         before_each(function()
             vim.cmd("enew")

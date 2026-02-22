@@ -28,20 +28,9 @@ function M.goto_marker(text)
     return row
 end
 
-function M.parse_lua(lines)
-    local buf = vim.api.nvim_create_buf(false, true)
-    vim.api.nvim_set_current_buf(buf)
-    vim.bo[buf].filetype = "lua"
-
-    vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
-
-    local parser = vim.treesitter.get_parser(buf, "lua")
-    local tree = parser:parse()[1]
-    return buf, tree:root()
-end
-
-function M.has_csharp_parser()
+function M.has_parser(parser_name)
     local data = vim.fn.stdpath("data")
+    local parser_path = "parser/" .. parser_name .. ".so"
 
     -- Add lazy treesitter path if it exists
     local ts_path = data .. "/lazy/nvim-treesitter"
@@ -49,20 +38,7 @@ function M.has_csharp_parser()
         vim.opt.runtimepath:append(ts_path)
     end
 
-    local parsers = vim.api.nvim_get_runtime_file("parser/c_sharp.so", false)
-    return #parsers > 0
-end
-
-function M.has_cpp_parser()
-    local data = vim.fn.stdpath("data")
-
-    -- Add lazy treesitter path if it exists
-    local ts_path = data .. "/lazy/nvim-treesitter"
-    if vim.loop.fs_stat(ts_path) then
-        vim.opt.runtimepath:append(ts_path)
-    end
-
-    local parsers = vim.api.nvim_get_runtime_file("parser/cpp.so", false)
+    local parsers = vim.api.nvim_get_runtime_file(parser_path, false)
     return #parsers > 0
 end
 
@@ -78,17 +54,17 @@ function M.parse_lines(lines, parser_name)
     return buf, tree:root()
 end
 
+function M.find_identifier(root, buf, name, parser_name)
+    local query = vim.treesitter.query.parse(parser_name, [[
+              (identifier) @id
+            ]])
 
-function M.parse_csharp(lines, parser_name)
-    local buf = vim.api.nvim_create_buf(false, true)
-    vim.api.nvim_set_current_buf(buf)
-
-    vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
-
-    local parser = vim.treesitter.get_parser(buf, parser_name)
-    local tree = parser:parse()[1]
-
-    return buf, tree:root()
+    for _, node in query:iter_captures(root, buf, 0, -1) do
+        local text = vim.treesitter.get_node_text(node, buf)
+        if text == name then
+            return node
+        end
+    end
 end
 
 return M
