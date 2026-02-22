@@ -91,12 +91,12 @@ if helper.has_csharp_parser() then
         end)
 
         it("handles incomplete method body while typing", function()
-            local _ = helper.parse_csharp({
+            local _ = helper.parse_lines({
                 "public class Test {",
                 "  public void Method() {",
                 "    int x = 10",
                 "",
-            })
+            }, "c_sharp")
 
             -- cursor at incomplete line
             vim.api.nvim_win_set_cursor(0, { 3, 14 })
@@ -108,13 +108,13 @@ if helper.has_csharp_parser() then
             assert.equals("top_level", snapshot.scope_set_category)
         end)
         it("handles partial if statement", function()
-            local buf = helper.parse_csharp({
+            local _ = helper.parse_lines({
                 "public class Test {",
                 "  public void Method() {",
                 "    if (",
                 "  }",
                 "}",
-            })
+            }, "c_sharp")
 
             vim.api.nvim_win_set_cursor(0, { 3, 8 })
 

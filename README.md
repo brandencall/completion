@@ -23,6 +23,7 @@ https://github.com/user-attachments/assets/d422928c-a077-4ecb-ae3c-ed40e3d4c159
 Current supported languages:
 - lua
 - csharp
+- cpp
 
 ## Installation
 Using lazy.nvim:

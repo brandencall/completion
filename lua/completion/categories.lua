@@ -29,7 +29,6 @@ M.types = {
     STRING = "string"
 }
 
--- Optional grouped sets (helps eligibility logic stay clean)
 M.groups = {
     BLOCK_LIKE = {
         M.types.CONTROL_FLOW,
@@ -39,14 +38,6 @@ M.groups = {
         M.types.BLOCK,
         M.types.SCOPE_BODY,
     },
-
-    --EXECUTABLE = {
-    --    M.types.ASSIGNMENT,
-    --    M.types.EXPRESSION,
-    --    M.types.CALL,
-    --    M.types.DECLARATION,
-    --    M.types.MEMBER_ACCESS
-    --}
 }
 
 M.scope_rules = {

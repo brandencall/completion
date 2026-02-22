@@ -2,18 +2,6 @@ local ts_utils = require("completion.lang.ts_util")
 local helper = require("tests.helper")
 
 describe("treesitter (lua)", function()
-    local function parse_lua(lines)
-        local buf = vim.api.nvim_create_buf(false, true)
-        vim.api.nvim_set_current_buf(buf)
-        vim.bo[buf].filetype = "lua"
-
-        vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
-
-        local parser = vim.treesitter.get_parser(buf, "lua")
-        local tree = parser:parse()[1]
-        return buf, tree:root()
-    end
-
     local function find_identifier(root, buf, name)
         local query = vim.treesitter.query.parse("lua", [[
       (identifier) @id
@@ -28,12 +16,12 @@ describe("treesitter (lua)", function()
     end
 
     it("get_function_node(): gets the current function", function()
-        local buf, root = parse_lua({
+        local buf, root = helper.parse_lines({
             "local function test()",
             "  local x = 1",
             "  print(x)",
             "end",
-        })
+        }, "lua")
 
         -- Get node inside function body
         local query = vim.treesitter.query.parse("lua", [[
@@ -51,12 +39,12 @@ describe("treesitter (lua)", function()
     end)
 
     it("get_current_scope(): returns the enclosing function node", function()
-        local buf, root = parse_lua({
+        local buf, root = helper.parse_lines({
             "local function test()",
             "  local x = 10",
             "  print(x)",
             "end",
-        })
+        }, "lua")
 
         local id_node = find_identifier(root, buf, "x")
         assert(id_node)
@@ -69,11 +57,11 @@ describe("treesitter (lua)", function()
     end)
 
     it("get_current_scope(): returns block when inside do-end block", function()
-        local buf, root = parse_lua({
+        local buf, root = helper.parse_lines({
             "do",
             "  local y = 5",
             "end",
-        })
+        }, "lua")
 
         local id_node = find_identifier(root, buf, "y")
         assert(id_node)
@@ -85,9 +73,9 @@ describe("treesitter (lua)", function()
     end)
 
     it("get_current_scope(): returns nil if no scope found", function()
-        local buf, root = parse_lua({
+        local buf, root = helper.parse_lines({
             "local z = 1",
-        })
+        }, "lua")
 
         local id_node = find_identifier(root, buf, "z")
         assert(id_node)
@@ -97,18 +85,18 @@ describe("treesitter (lua)", function()
     end)
 
     it("contains_err_node(): returns false for valid syntax tree", function()
-        local _, root = parse_lua({
+        local _, root = helper.parse_lines({
             "local a = 1",
             "print(a)",
-        })
+        }, "lua")
 
         assert.is_false(ts_utils.contains_err_node(root))
     end)
 
     it("contains_err_node(): returns true when syntax error exists", function()
-        local _, root = parse_lua({
+        local _, root = helper.parse_lines({
             "local a = ", -- incomplete statement → ERROR node
-        })
+        }, "lua")
 
         assert.is_true(ts_utils.contains_err_node(root))
     end)
@@ -133,7 +121,7 @@ if helper.has_csharp_parser() then
             end
         end
         it("get_function_node(): gets the current function in the class", function()
-            local buf, root = helper.parse_csharp({
+            local buf, root = helper.parse_lines({
                 "using System;",
                 "",
                 "public class TestClass",
@@ -144,7 +132,7 @@ if helper.has_csharp_parser() then
                 "        Console.WriteLine(x);",
                 "    }",
                 "}",
-            })
+            }, "c_sharp")
 
             local id_node = find_identifier(root, buf, "x")
 
@@ -160,13 +148,13 @@ if helper.has_csharp_parser() then
             assert.equals("method_declaration", func_node:type())
         end)
         it("get_current_scope(): returns the enclosing block scope", function()
-            local buf, root = helper.parse_csharp({
+            local buf, root = helper.parse_lines({
                 "public class Test {",
                 "  public void Method() {",
                 "    int x = 10;",
                 "  }",
                 "}",
-            })
+            }, "c_sharp")
 
             local id_node = find_identifier(root, buf, "x")
             assert(id_node)
@@ -179,7 +167,7 @@ if helper.has_csharp_parser() then
         end)
 
         it("get_current_scope(): returns nearest block when nested", function()
-            local buf, root = helper.parse_csharp({
+            local buf, root = helper.parse_lines({
                 "public class Test {",
                 "  public void Method() {",
                 "    if (true) {",
@@ -187,7 +175,7 @@ if helper.has_csharp_parser() then
                 "    }",
                 "  }",
                 "}",
-            })
+            }, "c_sharp")
 
             local id_node = find_identifier(root, buf, "y")
             assert(id_node)
@@ -200,9 +188,9 @@ if helper.has_csharp_parser() then
         end)
 
         it("get_current_scope(): returns nil if no scope found", function()
-            local buf, root = helper.parse_csharp({
+            local buf, root = helper.parse_lines({
                 "int z = 5;", -- top-level statement (C# 9+ style)
-            })
+            }, "c_sharp")
 
             local id_node = find_identifier(root, buf, "z")
             assert(id_node)
@@ -213,25 +201,25 @@ if helper.has_csharp_parser() then
 
 
         it("contains_err_node(): returns false for valid syntax tree", function()
-            local _, root = helper.parse_csharp({
+            local _, root = helper.parse_lines({
                 "public class Test {",
                 "  public void Method() {",
                 "    int a = 1;",
                 "  }",
                 "}",
-            })
+            }, "c_sharp")
 
             assert.is_false(ts_utils.contains_err_node(root))
         end)
 
         it("contains_err_node(): returns true when syntax error exists", function()
-            local _, root = helper.parse_csharp({
+            local _, root = helper.parse_lines({
                 "public class Test {",
                 "  public void Method() {",
                 "    int a = ;", -- invalid syntax
                 "  }",
                 "}",
-            })
+            }, "c_sharp")
 
             assert.is_true(ts_utils.contains_err_node(root))
         end)
