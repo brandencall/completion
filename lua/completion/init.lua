@@ -12,12 +12,6 @@ function M.setup(user_config)
     local opts = config.get()
     server.start(opts)
     state.enable()
-
-    vim.api.nvim_create_autocmd("VimLeavePre", {
-        callback = function()
-            server.stop()
-        end,
-    })
 end
 
 vim.api.nvim_create_user_command("CompletionEnable", function()
@@ -29,14 +23,7 @@ end, {})
 vim.api.nvim_create_user_command("CompletionDisable", function()
     state.disable()
     state.clear_agent_response_state()
-    server.stop()
-
     vim.notify("Completion disabled")
 end, {})
-
-function M.stop()
-    state.disable()
-    server.stop()
-end
 
 return M
