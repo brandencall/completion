@@ -140,6 +140,9 @@ vim.keymap.set('i', '<Tab>', function()
     if state.BufferState.text ~= "" then
         -- Could send "StopProcessingAgentResponse" on completion if we want
         M.insert_agent_text()
+        vim.api.nvim_exec_autocmds("User", {
+            pattern = "UserAcceptPrompt",
+        })
         return ""
     end
     return "<Tab>"

@@ -55,17 +55,7 @@ local function stream_llm_post(url, body_table, suffix, on_chunk_callback, on_co
             end
             if data then
                 local ok, parsed = pcall(json.decode, string.sub(data, 7))
-                if ok and parsed.stop == true then
-                    vim.schedule(function()
-                        vim.api.nvim_exec_autocmds("User", {
-                            pattern = "PromptFinished",
-                            data = {
-                                suffix = suffix,
-                                full_response = full_response
-                            },
-                        })
-                    end)
-                elseif ok and parsed.content then
+                if ok and parsed.content then
                     on_chunk_callback(parsed.content)
                     full_response = full_response .. parsed.content
                 end

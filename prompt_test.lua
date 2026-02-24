@@ -9,10 +9,7 @@ function M.sum_upto(n)
     local sum = 0
     local i = 1
     while i <= n do
-        sum = sum + i
-        i = i + 1
     end
-    return sum
 end
 
 -- EXPECTED OUTPUT:
@@ -24,10 +21,8 @@ end
 function M.contains_zero(values)
     for i = 1, #values do
         if values[i] == 0 then
-            return true
         end
     end
-    return false
 end
 
 -- EXPECTED OUTPUT:

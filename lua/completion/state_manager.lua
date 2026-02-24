@@ -49,6 +49,7 @@ local pending = {
 local current_state = M.States.DISABLED
 
 local eligible_timer = uv.new_timer()
+local suspend_timer = uv.new_timer()
 
 
 ---@param new_state State
@@ -114,7 +115,17 @@ local function on_timer()
     end
 end
 
-local scheduled_timer_cb = vim.schedule_wrap(on_timer)
+local function restart_eligible_timer(delay, lang, is_trigger)
+    pending.lang = lang
+    pending.is_trigger = is_trigger
+
+    if not eligible_timer then
+        return
+    end
+
+    eligible_timer:stop()
+    eligible_timer:start(delay, 0, vim.schedule_wrap(on_timer))
+end
 
 ---@param col integer
 ---@return string | nil
@@ -138,24 +149,30 @@ local function get_last_token(col)
     return line:match("(%w+)$")
 end
 
-
-local function restart_timer(delay, lang, is_trigger)
-    pending.lang = lang
-    pending.is_trigger = is_trigger
-
-    if not eligible_timer then
+local function suspend()
+    if not suspend_timer then
         return
     end
-
-    eligible_timer:stop()
-    eligible_timer:start(delay, 0, scheduled_timer_cb)
+    set_state(M.States.SUSPENDED)
+    suspend_timer:start(4000, 0, vim.schedule_wrap(function()
+        set_state(M.States.IDLE)
+    end))
 end
 
+
 local function user_typing()
-    if M.get_state() == M.States.DISABLED then return end
+    if M.get_state() == M.States.DISABLED or M.get_state() == M.States.SUSPENDED then
+        return
+    end
     if vim.api.nvim_get_option_value('buftype', { buf = 0 }) ~= "" then return end
     vim.api.nvim_exec_autocmds("User", { pattern = "UserTyping" })
 
+    if M.get_state() == M.States.DISPLAYING then
+        suspend()
+        return
+    end
+
+    set_state(M.States.TYPING)
     local lang = lang_manager.get_active_lang(0)
     if not lang then return end
 
@@ -177,13 +194,20 @@ local function user_typing()
     end
     local delay = is_trigger and 200 or 400
 
-    restart_timer(delay, lang, is_trigger)
+    restart_eligible_timer(delay, lang, is_trigger)
 end
 
 vim.api.nvim_create_autocmd("User", {
-    pattern = "PromptFinished",
+    pattern = "AgentResponse",
     callback = function()
         set_state(M.States.DISPLAYING)
+    end,
+})
+
+vim.api.nvim_create_autocmd("User", {
+    pattern = "UserAcceptPrompt",
+    callback = function()
+        set_state(M.States.IDLE)
     end
 })
 
@@ -196,15 +220,6 @@ vim.api.nvim_create_autocmd("TextChangedI", {
         })
     end,
     desc = "Trigger callback when text changes in insert mode"
-})
-
-vim.api.nvim_create_autocmd("CompleteDone", {
-    callback = function()
-        M.clear_agent_response_state()
-        vim.api.nvim_exec_autocmds("User", {
-            pattern = "StopProcessingAgentResponse",
-        })
-    end
 })
 
 return M
