@@ -18,22 +18,6 @@ local function increment_ref()
     vim.fn.writefile({ tostring(count) }, ref_file)
 end
 
-local function check_server_async(host, port, callback)
-    local url = string.format("%s:%s/health", host, port)
-
-    vim.system(
-        { "curl", "-s", "-o", "/dev/null", "-w", "%{http_code}", url },
-        { timeout = 3000 },
-        function(result)
-            if result.stdout == "200" then
-                callback(true)
-            else
-                callback(false)
-            end
-        end
-    )
-end
-
 local function start_server(config)
     M.job = Job:new({
         command = config.server.startup_path,
@@ -58,14 +42,9 @@ function M.start(config)
         return
     end
     increment_ref()
-    check_server_async(config.server.host, config.server.port, function(running)
-        if running then
-            return
-        end
-        vim.schedule(function()
-            start_server(config)
-        end)
-    end)
+    if not vim.uv.fs_stat(pid_file) then
+        start_server(config)
+    end
 end
 
 local function stop()
